@@ -1,5 +1,4 @@
-import CuentasList from '../components/CuentasList';
-import FloatingButton from '../components/FloatingButton';
+import AuthenticatedContent from '../components/AuthenticatedContent';
 
 export default function Home() {
   return (
@@ -8,8 +7,7 @@ export default function Home() {
         <h1 className="text-3xl font-bold text-text-primary">Twitter Helper</h1>
         <p className="text-text-primary opacity-70 mt-2">Genera contenido optimizado para Twitter</p>
       </div>
-      <CuentasList />
-      <FloatingButton />
+      <AuthenticatedContent />
     </div>
   )
 }

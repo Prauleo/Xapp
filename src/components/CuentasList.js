@@ -1,9 +1,11 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { supabase } from '../utils/supabaseClient';
+import { useAuth } from './AuthProvider';
 import Link from 'next/link';
 
 export default function CuentasList() {
+  const { user } = useAuth();
   const [cuentas, setCuentas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -34,6 +36,7 @@ export default function CuentasList() {
         const { data, error } = await supabase
           .from('cuentas')
           .select('*')
+          .eq('user_id', user.id)
           .order('creado_en', { ascending: false });
         
         if (error) throw error;

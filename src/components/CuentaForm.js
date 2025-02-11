@@ -2,8 +2,10 @@
 
 import { useState } from 'react';
 import { supabase } from '../utils/supabaseClient';
+import { useAuth } from './AuthProvider';
 
 export default function CuentaForm({ onSuccess }) {
+  const { user } = useAuth();
   const [formData, setFormData] = useState({
     nombre: '',
     tono: 'formal',
@@ -26,7 +28,7 @@ export default function CuentaForm({ onSuccess }) {
     try {
       const { data, error } = await supabase
         .from('cuentas')
-        .insert([formData])
+        .insert([{ ...formData, user_id: user.id }])
         .select();
 
       if (error) throw error;

@@ -1,12 +1,15 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '../../../../utils/supabaseClient';
+import { useAuth } from '../../../../components/AuthProvider';
 import { generarTweetsAutomaticos } from '../../../../utils/openai';
 import HistorialContenido from '../../../../components/HistorialContenido';
 
 export default function ContenidoPage() {
   const params = useParams();
+  const router = useRouter();
+  const { user } = useAuth();
   const [cuenta, setCuenta] = useState(null);
   const [inputs, setInputs] = useState({
     ideasPrincipales: '',
@@ -25,9 +28,14 @@ export default function ContenidoPage() {
           .from('cuentas')
           .select('*')
           .eq('id', params.id)
+          .eq('user_id', user.id)
           .single();
         
-        if (error) throw error;
+        if (error || !data) {
+          // Si no hay datos o hay error, significa que la cuenta no pertenece al usuario
+          router.push('/');
+          return;
+        }
         setCuenta(data);
       } catch (err) {
         console.error('Error cargando cuenta:', err);
@@ -67,6 +75,7 @@ export default function ContenidoPage() {
         .from('contenido')
         .insert([{
           cuenta_id: params.id,
+          user_id: user.id,
           ideas_principales: inputs.ideasPrincipales,
           contexto: inputs.contexto,
           tweets: tweetsGenerados,

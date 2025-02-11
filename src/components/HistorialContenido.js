@@ -1,8 +1,10 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { supabase } from '../utils/supabaseClient';
+import { useAuth } from './AuthProvider';
 
 export default function HistorialContenido({ cuentaId }) {
+  const { user } = useAuth();
   const [historial, setHistorial] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -34,6 +36,7 @@ export default function HistorialContenido({ cuentaId }) {
           .from('contenido')
           .select('*')
           .eq('cuenta_id', cuentaId)
+          .eq('user_id', user.id)
           .order('fecha_creacion', { ascending: false });
 
         if (error) throw error;
@@ -46,7 +49,7 @@ export default function HistorialContenido({ cuentaId }) {
       }
     };
 
-    if (cuentaId) {
+    if (cuentaId && user) {
       cargarHistorial();
     }
   }, [cuentaId]);
