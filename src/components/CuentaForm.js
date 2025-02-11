@@ -45,35 +45,35 @@ export default function CuentaForm({ onSuccess }) {
   };
 
   return (
-    <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-lg shadow-md">
-      <h2 className="text-2xl font-semibold mb-6">Crear Nueva Cuenta</h2>
+    <div className="max-w-md mx-auto mt-10 p-6 bg-bg-secondary rounded-lg shadow-lg border border-border">
+      <h2 className="text-2xl font-semibold mb-6 text-text-primary">Crear Nueva Cuenta</h2>
       
       {message && (
-        <div className={`p-4 mb-4 rounded ${message.includes('Error') ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
+        <div className={`p-4 mb-4 rounded border ${message.includes('Error') ? 'border-red-500 bg-bg-primary text-red-400' : 'border-green-500 bg-bg-primary text-green-400'}`}>
           {message}
         </div>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700">Nombre de la cuenta</label>
+          <label className="block text-sm font-medium text-text-primary">Nombre de la cuenta</label>
           <input
             type="text"
             name="nombre"
             value={formData.nombre}
             onChange={handleChange}
             required
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="mt-1 block w-full rounded-md border-border bg-bg-primary text-text-primary shadow-sm focus:border-accent focus:ring-accent"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">Tono</label>
+          <label className="block text-sm font-medium text-text-primary">Tono</label>
           <select
             name="tono"
             value={formData.tono}
             onChange={handleChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="mt-1 block w-full rounded-md border-border bg-bg-primary text-text-primary shadow-sm focus:border-accent focus:ring-accent"
           >
             <option value="formal">Formal</option>
             <option value="humoristico">Humorístico</option>
@@ -82,36 +82,36 @@ export default function CuentaForm({ onSuccess }) {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">Estilo Visual</label>
+          <label className="block text-sm font-medium text-text-primary">Estilo Visual</label>
           <input
             type="text"
             name="estilo_visual"
             value={formData.estilo_visual}
             onChange={handleChange}
             placeholder="Ej: Minimalista, Colorido, Profesional"
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="mt-1 block w-full rounded-md border-border bg-bg-primary text-text-primary shadow-sm focus:border-accent focus:ring-accent"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">Público Objetivo</label>
+          <label className="block text-sm font-medium text-text-primary">Público Objetivo</label>
           <textarea
             name="publico_objetivo"
             value={formData.publico_objetivo}
             onChange={handleChange}
             placeholder="Describe tu audiencia objetivo"
             rows="3"
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="mt-1 block w-full rounded-md border-border bg-bg-primary text-text-primary shadow-sm focus:border-accent focus:ring-accent"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">Idioma de publicación</label>
+          <label className="block text-sm font-medium text-text-primary">Idioma de publicación</label>
           <select
             name="idioma"
             value={formData.idioma}
             onChange={handleChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="mt-1 block w-full rounded-md border-border bg-bg-primary text-text-primary shadow-sm focus:border-accent focus:ring-accent"
           >
             <option value="es">Español</option>
             <option value="en">English</option>
@@ -120,7 +120,7 @@ export default function CuentaForm({ onSuccess }) {
 
         <button
           type="submit"
-          className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          className="w-full bg-accent text-text-primary py-2 px-4 rounded-md hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-bg-primary transition-opacity"
         >
           Crear Cuenta
         </button>

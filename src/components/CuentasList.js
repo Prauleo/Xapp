@@ -49,32 +49,32 @@ export default function CuentasList() {
     cargarCuentas();
   }, []);
 
-  if (loading) return <div className="text-center py-4">Cargando cuentas...</div>;
-  if (error) return <div className="text-red-500 py-4">Error: {error}</div>;
+  if (loading) return <div className="text-center py-4 text-text-primary">Cargando cuentas...</div>;
+  if (error) return <div className="text-red-400 py-4">Error: {error}</div>;
 
   return (
     <div className="space-y-4 mt-8">
-      <h2 className="text-xl font-semibold mb-4">Cuentas Disponibles</h2>
+      <h2 className="text-xl font-semibold mb-4 text-text-primary">Cuentas Disponibles</h2>
       {cuentas.length === 0 ? (
-        <p className="text-gray-500">No hay cuentas creadas todavía.</p>
+        <p className="text-text-primary opacity-60">No hay cuentas creadas todavía.</p>
       ) : (
         <div className="grid gap-4">
           {cuentas.map((cuenta) => (
             <div key={cuenta.id} className="group relative">
               <Link
                 href={`/cuenta/${cuenta.id}/contenido`}
-                className="block p-4 border rounded-lg hover:bg-gray-50 transition-colors"
+                className="block p-4 border border-border rounded-lg bg-bg-secondary hover:bg-accent/10 transition-colors"
               >
-                <h3 className="font-medium text-lg">{cuenta.nombre}</h3>
-                <p className="text-gray-600 mt-1">{cuenta.descripcion}</p>
+                <h3 className="font-medium text-lg text-text-primary">{cuenta.nombre}</h3>
+                <p className="text-text-primary opacity-70 mt-1">{cuenta.descripcion}</p>
                 <div className="flex flex-wrap gap-2 mt-2">
-                  <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                  <span className="text-xs bg-accent/20 text-text-primary px-2 py-1 rounded border border-accent/30">
                     {cuenta.tono}
                   </span>
-                  <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded">
+                  <span className="text-xs bg-accent/20 text-text-primary px-2 py-1 rounded border border-accent/30">
                     {cuenta.estilo_visual || 'minimalista'}
                   </span>
-                  <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+                  <span className="text-xs bg-accent/20 text-text-primary px-2 py-1 rounded border border-accent/30">
                     {cuenta.idioma === 'es' ? '🇪🇸 Español' : '🇺🇸 English'}
                   </span>
                 </div>
@@ -84,7 +84,7 @@ export default function CuentasList() {
                   e.preventDefault();
                   borrarCuenta(cuenta.id);
                 }}
-                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                className="absolute -top-2 -right-2 bg-red-500/80 hover:bg-red-500 text-text-primary rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-all duration-200 transform hover:scale-110"
                 title="Eliminar cuenta"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

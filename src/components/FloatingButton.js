@@ -11,7 +11,7 @@ export default function FloatingButton() {
       {/* Botón flotante */}
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 w-14 h-14 bg-blue-500 text-white rounded-full shadow-lg hover:bg-blue-600 flex items-center justify-center text-2xl"
+        className="fixed bottom-6 right-6 w-14 h-14 bg-accent text-text-primary rounded-full shadow-lg hover:opacity-90 flex items-center justify-center text-2xl transition-opacity z-30"
         aria-label="Crear nueva cuenta"
       >
         +
@@ -24,12 +24,12 @@ export default function FloatingButton() {
         className="relative z-50"
       >
         {/* Overlay de fondo */}
-        <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+        <div className="fixed inset-0 bg-black/50" aria-hidden="true" />
 
         {/* Contenedor del modal */}
         <div className="fixed inset-0 flex items-center justify-center p-4">
-          <Dialog.Panel className="mx-auto max-w-xl w-full bg-white rounded-lg shadow-xl p-6">
-            <Dialog.Title className="text-2xl font-bold mb-4">
+          <Dialog.Panel className="mx-auto max-w-xl w-full bg-bg-secondary rounded-lg shadow-xl border border-border p-6">
+            <Dialog.Title className="text-2xl font-bold mb-4 text-text-primary">
               Crear Nueva Cuenta
             </Dialog.Title>
             
@@ -37,7 +37,7 @@ export default function FloatingButton() {
             
             <button
               onClick={() => setIsOpen(false)}
-              className="mt-4 px-4 py-2 text-sm text-gray-600 hover:text-gray-800"
+              className="mt-4 px-4 py-2 text-sm text-text-primary opacity-70 hover:opacity-100 transition-opacity"
             >
               Cancelar
             </button>

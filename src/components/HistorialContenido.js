@@ -51,20 +51,20 @@ export default function HistorialContenido({ cuentaId }) {
     }
   }, [cuentaId]);
 
-  if (loading) return <div className="text-center py-4">Cargando historial...</div>;
-  if (error) return <div className="text-red-500 py-4">Error: {error}</div>;
+  if (loading) return <div className="text-center py-4 text-text-primary">Cargando historial...</div>;
+  if (error) return <div className="text-red-400 py-4">Error: {error}</div>;
 
   return (
     <div className="mt-8">
-      <h2 className="text-xl font-semibold mb-4">Historial de Contenido</h2>
+      <h2 className="text-xl font-semibold mb-4 text-text-primary">Historial de Contenido</h2>
       {historial.length === 0 ? (
-        <p className="text-gray-500">No hay contenido generado todavía.</p>
+        <p className="text-text-primary opacity-60">No hay contenido generado todavía.</p>
       ) : (
         <div className="space-y-4">
           {historial.map((item) => (
-            <div key={item.id} className="border rounded-lg p-4 bg-white shadow-sm relative group">
+            <div key={item.id} className="border border-border rounded-lg p-4 bg-bg-secondary relative group">
               <div className="flex justify-between items-start mb-2">
-                <span className="text-sm text-gray-500">
+                <span className="text-sm text-text-primary opacity-70">
                   {new Date(item.fecha_creacion).toLocaleDateString('es-ES', {
                     year: 'numeric',
                     month: 'long',
@@ -77,7 +77,7 @@ export default function HistorialContenido({ cuentaId }) {
               
               <button 
                 onClick={() => borrarContenido(item.id)}
-                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                className="absolute -top-2 -right-2 bg-red-500/80 hover:bg-red-500 text-text-primary rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-all duration-200 transform hover:scale-110"
                 title="Eliminar contenido"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -86,21 +86,21 @@ export default function HistorialContenido({ cuentaId }) {
               </button>
 
               <div className="mb-4">
-                <h3 className="font-medium text-gray-700 mb-2">Ideas principales:</h3>
-                <p className="text-gray-600 text-sm">{item.ideas_principales}</p>
+                <h3 className="font-medium text-text-primary mb-2">Ideas principales:</h3>
+                <p className="text-text-primary opacity-80 text-sm">{item.ideas_principales}</p>
               </div>
 
               <div className="mb-4">
-                <h3 className="font-medium text-gray-700 mb-2">Contexto utilizado:</h3>
-                <p className="text-gray-600 text-sm">{item.contexto}</p>
+                <h3 className="font-medium text-text-primary mb-2">Contexto utilizado:</h3>
+                <p className="text-text-primary opacity-80 text-sm">{item.contexto}</p>
               </div>
 
               <div>
-                <h3 className="font-medium text-gray-700 mb-2">Tweets Generados:</h3>
+                <h3 className="font-medium text-text-primary mb-2">Tweets Generados:</h3>
                 <div className="space-y-2">
                   {item.tweets && item.tweets.map((tweet, index) => (
-                    <div key={index} className="p-3 bg-gray-50 rounded border">
-                      <p className="text-gray-800">{tweet}</p>
+                    <div key={index} className="p-3 bg-bg-primary rounded border border-border">
+                      <p className="text-text-primary">{tweet}</p>
                     </div>
                   ))}
                 </div>

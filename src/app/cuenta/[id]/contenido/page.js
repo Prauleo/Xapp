@@ -83,28 +83,28 @@ export default function ContenidoPage() {
     }
   };
 
-  if (!cuenta) return <div className="text-center py-4">Cargando cuenta...</div>;
-  if (error) return <div className="text-red-500 py-4">Error: {error}</div>;
+  if (!cuenta) return <div className="text-center py-4 text-text-primary">Cargando cuenta...</div>;
+  if (error) return <div className="text-red-400 py-4">Error: {error}</div>;
 
   return (
     <div className="container mx-auto p-4">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold mb-2">{cuenta.nombre}</h1>
-        <p className="text-gray-600">{cuenta.descripcion}</p>
+        <h1 className="text-2xl font-bold mb-2 text-text-primary">{cuenta.nombre}</h1>
+        <p className="text-text-primary opacity-70">{cuenta.descripcion}</p>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Panel de entrada */}
         <div className="space-y-6">
           <div>
-            <h2 className="text-xl font-semibold mb-4">Generar Contenido</h2>
+            <h2 className="text-xl font-semibold mb-4 text-text-primary">Generar Contenido</h2>
             
             {/* Ideas Principales */}
             <div className="mb-6">
-              <label className="block text-lg font-semibold text-gray-700 mb-2">
+              <label className="block text-lg font-semibold text-text-primary mb-2">
                 Ideas Principales ★
               </label>
-              <p className="text-sm text-gray-600 mb-2">
+              <p className="text-sm text-text-primary opacity-70 mb-2">
                 Escribe aquí tus ideas principales. Este contenido tendrá la máxima prioridad.
               </p>
               <textarea
@@ -112,17 +112,17 @@ export default function ContenidoPage() {
                 value={inputs.ideasPrincipales}
                 onChange={handleInputChange}
                 placeholder="Escribe tus ideas principales aquí..."
-                className="w-full h-40 p-3 border rounded-lg resize-none focus:ring-2 focus:ring-blue-500"
+                className="w-full h-40 p-3 bg-bg-primary border border-border rounded-lg resize-none text-text-primary placeholder-text-primary/50 focus:ring-2 focus:ring-accent focus:border-accent"
                 required
               />
             </div>
 
             {/* Contexto */}
             <div className="mb-6">
-              <label className="block text-lg font-semibold text-gray-700 mb-2">
+              <label className="block text-lg font-semibold text-text-primary mb-2">
                 Contexto de Referencia
               </label>
-              <p className="text-sm text-gray-600 mb-2">
+              <p className="text-sm text-text-primary opacity-70 mb-2">
                 Pega aquí artículos o información relevante para dar más contexto a tus ideas.
               </p>
               <textarea
@@ -130,15 +130,15 @@ export default function ContenidoPage() {
                 value={inputs.contexto}
                 onChange={handleInputChange}
                 placeholder="Pega aquí artículos o tweets relevantes..."
-                className="w-full h-40 p-3 border rounded-lg resize-none focus:ring-2 focus:ring-blue-500"
+                className="w-full h-40 p-3 bg-bg-primary border border-border rounded-lg resize-none text-text-primary placeholder-text-primary/50 focus:ring-2 focus:ring-accent focus:border-accent"
               />
             </div>
 
             <button
               onClick={generarContenido}
               disabled={loading}
-              className={`w-full py-2 px-4 rounded-lg text-white ${
-                loading ? 'bg-blue-300' : 'bg-blue-500 hover:bg-blue-600'
+              className={`w-full py-2 px-4 rounded-lg text-text-primary transition-opacity ${
+                loading ? 'bg-accent opacity-50 cursor-not-allowed' : 'bg-accent hover:opacity-90'
               }`}
             >
               {loading ? 'Generando...' : 'Generar Tweets'}
@@ -149,17 +149,17 @@ export default function ContenidoPage() {
         {/* Panel de resultados */}
         <div className="space-y-6">
           <div>
-            <h2 className="text-xl font-semibold mb-4">Tweets Generados</h2>
+            <h2 className="text-xl font-semibold mb-4 text-text-primary">Tweets Generados</h2>
             {tweets.length > 0 ? (
               <div className="space-y-3">
                 {tweets.map((tweet, index) => (
-                  <div key={index} className="p-4 border rounded-lg bg-white">
-                    <p>{tweet}</p>
+                  <div key={index} className="p-4 border border-border rounded-lg bg-bg-secondary">
+                    <p className="text-text-primary">{tweet}</p>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-gray-500">
+              <p className="text-text-primary opacity-60">
                 Los tweets generados aparecerán aquí...
               </p>
             )}
