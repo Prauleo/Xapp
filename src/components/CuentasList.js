@@ -8,6 +8,26 @@ export default function CuentasList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const borrarCuenta = async (id) => {
+    const confirmar = window.confirm('¿Estás seguro de que quieres eliminar esta cuenta?');
+    if (!confirmar) return;
+
+    try {
+      const { error } = await supabase
+        .from('cuentas')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      // Actualizar la lista de cuentas
+      setCuentas(cuentas.filter(cuenta => cuenta.id !== id));
+    } catch (err) {
+      console.error('Error borrando cuenta:', err);
+      alert('Error al borrar la cuenta');
+    }
+  };
+
   useEffect(() => {
     const cargarCuentas = async () => {
       try {
@@ -40,22 +60,38 @@ export default function CuentasList() {
       ) : (
         <div className="grid gap-4">
           {cuentas.map((cuenta) => (
-            <Link
-              key={cuenta.id}
-              href={`/cuenta/${cuenta.id}/contenido`}
-              className="block p-4 border rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              <h3 className="font-medium text-lg">{cuenta.nombre}</h3>
-              <p className="text-gray-600 mt-1">{cuenta.descripcion}</p>
-              <div className="flex gap-2 mt-2">
-                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                  {cuenta.tono}
-                </span>
-                <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded">
-                  {cuenta.estilo_visual || 'minimalista'}
-                </span>
-              </div>
-            </Link>
+            <div key={cuenta.id} className="group relative">
+              <Link
+                href={`/cuenta/${cuenta.id}/contenido`}
+                className="block p-4 border rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                <h3 className="font-medium text-lg">{cuenta.nombre}</h3>
+                <p className="text-gray-600 mt-1">{cuenta.descripcion}</p>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                    {cuenta.tono}
+                  </span>
+                  <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded">
+                    {cuenta.estilo_visual || 'minimalista'}
+                  </span>
+                  <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+                    {cuenta.idioma === 'es' ? '🇪🇸 Español' : '🇺🇸 English'}
+                  </span>
+                </div>
+              </Link>
+              <button 
+                onClick={(e) => {
+                  e.preventDefault();
+                  borrarCuenta(cuenta.id);
+                }}
+                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                title="Eliminar cuenta"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
           ))}
         </div>
       )}

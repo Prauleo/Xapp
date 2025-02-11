@@ -1,12 +1,15 @@
-import CuentaForm from '../components/CuentaForm';
 import CuentasList from '../components/CuentasList';
+import FloatingButton from '../components/FloatingButton';
 
 export default function Home() {
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Administrador de Cuentas</h1>
-      <CuentaForm />
+      <div className="text-center mb-8">
+        <h1 className="text-3xl font-bold text-gray-800">Twitter Helper</h1>
+        <p className="text-gray-600 mt-2">Genera contenido optimizado para Twitter</p>
+      </div>
       <CuentasList />
+      <FloatingButton />
     </div>
   )
 }

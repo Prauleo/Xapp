@@ -5,26 +5,28 @@ const openai = new OpenAI({
   dangerouslyAllowBrowser: true
 });
 
-export async function generarTweetsAutomaticos(contexto, cuenta) {
+export async function generarTweetsAutomaticos(contextoCompleto, cuenta) {
   try {
     const prompt = `
       Actúa como un experto en creación de contenido para Twitter.
       
-      Contexto de la cuenta:
-      - Nombre: ${cuenta.nombre}
-      - Tono: ${cuenta.tono}
-      - Estilo: ${cuenta.estilo_visual || 'minimalista'}
-      - Público objetivo: ${cuenta.publico_objetivo || 'general'}
+      INSTRUCCIONES PRINCIPALES (${cuenta.idioma.toUpperCase()}):
+      1. Estilo visual: ${cuenta.estilo_visual}
+      2. Tono: ${cuenta.tono}
+      
+      IDEAS DEL USUARIO (MAXIMA PRIORIDAD):
+      ${contextoCompleto.ideas}
 
-      Basado en el siguiente contexto:
-      ${contexto}
+      CONTEXTO COMPLEMENTARIO:
+      ${contextoCompleto.contexto}
 
-      Genera 3 tweets que:
-      1. Mantengan el tono ${cuenta.tono} especificado
-      2. Sean relevantes para el contexto proporcionado
-      3. Tengan máximo 280 caracteres
-      4. Sean atractivos y generen engagement
-      5. No incluyan hashtags, solo texto puro
+      Generar 3 tweets en ${cuenta.idioma === 'es' ? 'español' : 'inglés'} que:
+      - Se ajusten al estilo visual
+      - Mantengan el tono especificado
+      - Reflejen principalmente las ideas del usuario
+      - Tengan máximo 280 caracteres
+      - Sean atractivos y generen engagement
+      - No incluyan hashtags, solo texto puro
 
       Formato de respuesta:
       - Un tweet por línea

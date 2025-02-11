@@ -3,12 +3,13 @@
 import { useState } from 'react';
 import { supabase } from '../utils/supabaseClient';
 
-export default function CuentaForm() {
+export default function CuentaForm({ onSuccess }) {
   const [formData, setFormData] = useState({
     nombre: '',
     tono: 'formal',
     estilo_visual: '',
-    publico_objetivo: ''
+    publico_objetivo: '',
+    idioma: 'es'
   });
   const [message, setMessage] = useState('');
 
@@ -37,6 +38,7 @@ export default function CuentaForm() {
         estilo_visual: '',
         publico_objetivo: ''
       });
+      if (onSuccess) onSuccess();
     } catch (error) {
       setMessage('Error: ' + error.message);
     }
@@ -101,6 +103,19 @@ export default function CuentaForm() {
             rows="3"
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Idioma de publicación</label>
+          <select
+            name="idioma"
+            value={formData.idioma}
+            onChange={handleChange}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          >
+            <option value="es">Español</option>
+            <option value="en">English</option>
+          </select>
         </div>
 
         <button
