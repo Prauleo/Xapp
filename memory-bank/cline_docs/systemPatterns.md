@@ -22,7 +22,9 @@ El sistema está construido utilizando una arquitectura moderna basada en:
 
 ### Utilidades
 - **openai.js**: Integración con la API de OpenAI
-- **supabaseClient.js**: Cliente de Supabase para base de datos
+  - Análisis de tweets
+  - Generación de voz de cuenta
+  - Creación de contenido personalizado
 
 ## Decisiones Técnicas Clave
 1. **Arquitectura basada en componentes**:
@@ -34,9 +36,10 @@ El sistema está construido utilizando una arquitectura moderna basada en:
    - Implementación de Google Authenticator
    - Autenticación mediante Supabase
    - Acceso restringido a nivel de componente
+   - Políticas RLS para protección de datos
 
 3. **Integración de APIs**:
-   - OpenAI para generación de contenido
+   - OpenAI para análisis y generación de contenido
    - Supabase para almacenamiento y autenticación
    - Google Authenticator para seguridad adicional
 
@@ -65,14 +68,41 @@ El sistema está construido utilizando una arquitectura moderna basada en:
    - Manejo de sesiones con Supabase
    - Protección de rutas y contenido
 
-2. **Generación de Contenido**:
-   - Recopilación de tweets y contexto
-   - Procesamiento mediante OpenAI
+2. **Análisis y Generación de Voz**:
+   - Recopilación de tweets de ejemplo
+   - Análisis mediante OpenAI para extraer patrones
+   - Generación de voz única para cada cuenta
+   - Almacenamiento en tabla `voces_cuenta`
+
+3. **Generación de Contenido**:
+   - Consulta de la voz de cuenta almacenada
+   - Procesamiento mediante OpenAI usando la voz como guía
    - Almacenamiento en Supabase
    - Visualización en interfaz de usuario
 
-3. **Gestión de Cuentas**:
+4. **Gestión de Cuentas**:
    - Creación y configuración de cuentas
-   - Captura del tono y estilo
-   - Almacenamiento de preferencias
+   - Captura y análisis de tweets de ejemplo
+   - Generación y almacenamiento de voz de cuenta
    - Historial de contenido generado
+
+## Patrones de Voz de Cuenta
+1. **Estructura de Voz**:
+   - Core Voice: Definición principal del estilo
+   - Key Components: Elementos característicos
+   - Content Formula: Proporciones de elementos
+   - Cross-Validation: Ejemplos de transformación
+   - Conflict Resolution: Manejo de inconsistencias
+
+2. **Proceso de Generación**:
+   - Análisis de tweets de ejemplo
+   - Síntesis de patrones comunes
+   - Generación de fórmula de contenido
+   - Validación cruzada con ejemplos
+   - Almacenamiento para uso posterior
+
+3. **Uso en Generación de Contenido**:
+   - Consulta de voz almacenada
+   - Aplicación de patrones y fórmulas
+   - Generación de contenido consistente
+   - Validación contra el estilo definido

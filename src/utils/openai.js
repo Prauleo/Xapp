@@ -58,6 +58,57 @@ export async function generarIdeas(tono, ejemplos) {
   // Aquí iría el código para generar ideas, pero por ahora solo definimos la función.
 }
 
+export async function generarVozCuenta(analyses) {
+  try {
+    const prompt = `
+Act as an AI expert in synthesizing social media personality profiles. Your task is to create a comprehensive voice profile from multiple tweet analyses that will guide content generation.
+
+TWEET ANALYSES:
+${analyses}
+
+Create a unified voice profile that:
+1. Identifies consistent patterns across all analyzed tweets
+2. Extracts core personality traits and writing style
+3. Determines primary communication strategies
+4. Establishes tone and emotional range
+5. Defines vocabulary preferences and linguistic patterns
+
+OUTPUT FORMAT:
+[Voice Profile]
+- Core Personality:
+- Writing Style:
+- Communication Patterns:
+- Emotional Range:
+- Vocabulary Profile:
+- Engagement Strategy:
+
+[Content Generation Guidelines]
+1. Tone Instructions:
+2. Structure Preferences:
+3. Language Choices:
+4. Engagement Tactics:
+5. Style Markers:
+
+[Style Consistency Rules]
+1. Always:
+2. Sometimes:
+3. Never:
+`;
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4",
+      messages: [{ role: "user", content: prompt }],
+      temperature: 0.7,
+      max_tokens: 1500
+    });
+
+    return response.choices[0].message.content;
+  } catch (error) {
+    console.error('Error generating account voice:', error);
+    throw new Error('No se pudo generar la voz de la cuenta. Por favor, intenta de nuevo.');
+  }
+}
+
 export async function analizarTweet(tweet, account) {
   try {
     const prompt = `  

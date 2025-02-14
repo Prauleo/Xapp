@@ -1,31 +1,28 @@
-# Progress Update
+# Actualización de Progreso
 
-## Current Task Status
-- **OpenAI Integration**: Successfully implemented tweet analysis functionality using OpenAI's API.
-- **Database Updates**: 
-  - Added `tweet_analyses` field to the `cuentas` table in Supabase.
-  - Updated table structure to use `created_at` for timestamp tracking.
-- **Component Updates**:
-  - Modified `CuentaForm.js` to analyze tweets as they're added.
-  - Updated `CuentasList.js` to display tweet counts and handle the new data structure.
-  - Added loading states during tweet analysis.
+## Estado Actual de la Tarea
+- **Integración de OpenAI**: 
+  - Funcionalidad de análisis de tweets implementada con éxito.
+  - Sistema de generación de voz de cuenta basado en análisis de tweets.
+- **Actualizaciones de Base de Datos**: 
+  - Campo `tweet_analyses` agregado a la tabla `cuentas` en Supabase.
+  - Nueva tabla `voces_cuenta` creada para almacenar la voz generada de cada cuenta.
+- **Actualizaciones de Componentes**:
+  - `CuentaForm.js` modificado para analizar tweets al agregarlos y generar la voz de la cuenta al crearla.
 
-## Completed Tasks
-1. ✅ Integrated OpenAI for tweet analysis
-2. ✅ Updated database schema
-3. ✅ Implemented tweet analysis in the UI
-4. ✅ Added proper error handling and loading states
+## Tareas Completadas
+1. ✅ Integración de OpenAI para análisis de tweets.
+2. ✅ Actualización del esquema de base de datos.
+3. ✅ Implementación del análisis de tweets en la UI.
+4. ✅ Generación de voz de cuenta al crear una nueva cuenta.
+5. ✅ Almacenamiento de la voz generada en la tabla `voces_cuenta`.
 
-## Next Steps
-1. **Testing and Validation**:
-   - Test tweet analysis with various types of content
-   - Verify proper storage and retrieval of analyses
-   - Ensure error handling works as expected
+## Próximos Pasos
+1. **Pruebas y Validación**:
+   - Probar el análisis de tweets con varios tipos de contenido.
+   - Verificar el almacenamiento y recuperación correctos de los análisis.
+   - Asegurar que el manejo de errores funcione según lo esperado.
 
-2. **UI Improvements**:
-   - Consider adding a way to view the analysis results
-   - Add more detailed error messages if analysis fails
-   - Improve loading state visuals
-
-## Summary
-The core functionality for tweet analysis is now in place. The system can analyze tweets using OpenAI's computational linguistics capabilities and store the results. The next phase will focus on testing, validation, and UI improvements to make the analysis results more accessible to users.
+2. **Mejoras de UI**:
+   - Considerar agregar una forma de ver los resultados del análisis.
+   - Mejorar los visuales del estado de carga.

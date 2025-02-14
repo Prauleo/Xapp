@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { supabase } from '../utils/supabaseClient';
 import { useAuth } from './AuthProvider';
-import { analizarTweet } from '../utils/openai';
+import { analizarTweet, generarVozCuenta } from '../utils/openai';
 
 export default function CuentaForm({ onSuccess }) {
   const { user } = useAuth();
@@ -28,7 +28,13 @@ export default function CuentaForm({ onSuccess }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const { data, error } = await supabase
+      // Verificar que haya tweets analizados
+      if (Object.keys(tweetAnalyses).length === 0) {
+        throw new Error('Debes agregar al menos un tweet de ejemplo');
+      }
+
+      // Primero creamos la cuenta
+      const { data: cuentaData, error: cuentaError } = await supabase
         .from('cuentas')
         .insert([{ 
           ...formData, 
@@ -38,9 +44,24 @@ export default function CuentaForm({ onSuccess }) {
         }])
         .select();
 
-      if (error) throw error;
+      if (cuentaError) throw cuentaError;
 
-      setMessage('¡Cuenta creada exitosamente!');
+      // Generamos la voz de la cuenta
+      setMessage('Generando voz de la cuenta...');
+      const analysesText = Object.values(tweetAnalyses).join('\n');
+      const voiceProfile = await generarVozCuenta(analysesText);
+
+      // Guardamos la voz en la tabla voces_cuenta
+      const { error: vozError } = await supabase
+        .from('voces_cuenta')
+        .insert([{
+          cuenta_id: cuentaData[0].id,
+          voz: voiceProfile
+        }]);
+
+      if (vozError) throw vozError;
+
+      setMessage('¡Cuenta creada exitosamente! Voz generada.');
       setFormData({
         nombre: '',
         idioma: 'es'
@@ -120,7 +141,12 @@ export default function CuentaForm({ onSuccess }) {
             <div className="mt-2 space-y-2">
               {exampleTweets.map((tweet, index) => (
                 <div key={index} className="flex items-center gap-2 p-2 rounded bg-bg-primary border border-border">
-                  <p className="flex-1 text-sm text-text-primary">{tweet}</p>
+                  <p className="flex-1 text-sm text-text-primary">
+                    {tweet}
+                    {tweetAnalyses[tweet] && (
+                      <span className="hidden">{tweetAnalyses[tweet]}</span>
+                    )}
+                  </p>
                   <button
                     type="button"
                     onClick={() => {
