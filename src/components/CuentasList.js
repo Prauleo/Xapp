@@ -37,7 +37,7 @@ export default function CuentasList() {
           .from('cuentas')
           .select('*')
           .eq('user_id', user.id)
-          .order('creado_en', { ascending: false });
+          .order('created_at', { ascending: false });
         
         if (error) throw error;
         setCuentas(data || []);
@@ -72,14 +72,13 @@ export default function CuentasList() {
                 <p className="text-text-primary opacity-70 mt-1">{cuenta.descripcion}</p>
                 <div className="flex flex-wrap gap-2 mt-2">
                   <span className="text-xs bg-accent/20 text-text-primary px-2 py-1 rounded border border-accent/30">
-                    {cuenta.tono}
-                  </span>
-                  <span className="text-xs bg-accent/20 text-text-primary px-2 py-1 rounded border border-accent/30">
-                    {cuenta.estilo_visual || 'minimalista'}
-                  </span>
-                  <span className="text-xs bg-accent/20 text-text-primary px-2 py-1 rounded border border-accent/30">
                     {cuenta.idioma === 'es' ? '🇪🇸 Español' : '🇺🇸 English'}
                   </span>
+                  {cuenta.example_tweets?.length > 0 && (
+                    <span className="text-xs bg-accent/20 text-text-primary px-2 py-1 rounded border border-accent/30">
+                      {cuenta.example_tweets.length} tweets de ejemplo
+                    </span>
+                  )}
                 </div>
               </Link>
               <button 
