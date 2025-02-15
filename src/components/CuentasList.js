@@ -10,9 +10,9 @@ export default function CuentasList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const borrarCuenta = async (id) => {
-    const confirmar = window.confirm('¿Estás seguro de que quieres eliminar esta cuenta?');
-    if (!confirmar) return;
+  const deleteAccount = async (id) => {
+    const confirm = window.confirm('Are you sure you want to delete this account?');
+    if (!confirm) return;
 
     try {
       const { error } = await supabase
@@ -22,16 +22,16 @@ export default function CuentasList() {
 
       if (error) throw error;
 
-      // Actualizar la lista de cuentas
-      setCuentas(cuentas.filter(cuenta => cuenta.id !== id));
+      // Update accounts list
+      setCuentas(cuentas.filter(account => account.id !== id));
     } catch (err) {
-      console.error('Error borrando cuenta:', err);
-      alert('Error al borrar la cuenta');
+      console.error('Error deleting account:', err);
+      alert('Error deleting the account');
     }
   };
 
   useEffect(() => {
-    const cargarCuentas = async () => {
+    const loadAccounts = async () => {
       try {
         const { data, error } = await supabase
           .from('cuentas')
@@ -42,41 +42,41 @@ export default function CuentasList() {
         if (error) throw error;
         setCuentas(data || []);
       } catch (err) {
-        console.error('Error cargando cuentas:', err);
+        console.error('Error loading accounts:', err);
         setError(err.message);
       } finally {
         setLoading(false);
       }
     };
 
-    cargarCuentas();
+    loadAccounts();
   }, []);
 
-  if (loading) return <div className="text-center py-4 text-text-primary">Cargando cuentas...</div>;
+  if (loading) return <div className="text-center py-4 text-text-primary">Loading accounts...</div>;
   if (error) return <div className="text-red-400 py-4">Error: {error}</div>;
 
   return (
     <div className="space-y-4 mt-8">
-      <h2 className="text-xl font-semibold mb-4 text-text-primary">Cuentas Disponibles</h2>
+      <h2 className="text-xl font-semibold mb-4 text-text-primary">Available Accounts</h2>
       {cuentas.length === 0 ? (
-        <p className="text-text-primary opacity-60">No hay cuentas creadas todavía.</p>
+        <p className="text-text-primary opacity-60">No accounts created yet.</p>
       ) : (
         <div className="grid gap-4">
-          {cuentas.map((cuenta) => (
-            <div key={cuenta.id} className="group relative">
+          {cuentas.map((account) => (
+            <div key={account.id} className="group relative">
               <Link
-                href={`/cuenta/${cuenta.id}/contenido`}
+                href={`/cuenta/${account.id}/contenido`}
                 className="block p-4 border border-border rounded-lg bg-bg-secondary hover:bg-accent/10 transition-colors"
               >
-                <h3 className="font-medium text-lg text-text-primary">{cuenta.nombre}</h3>
-                <p className="text-text-primary opacity-70 mt-1">{cuenta.descripcion}</p>
+                <h3 className="font-medium text-lg text-text-primary">{account.nombre}</h3>
+                <p className="text-text-primary opacity-70 mt-1">{account.descripcion}</p>
                 <div className="flex flex-wrap gap-2 mt-2">
                   <span className="text-xs bg-accent/20 text-text-primary px-2 py-1 rounded border border-accent/30">
-                    {cuenta.idioma === 'es' ? '🇪🇸 Español' : '🇺🇸 English'}
+                    {account.idioma === 'es' ? '🇪🇸 Spanish' : '🇺🇸 English'}
                   </span>
-                  {cuenta.example_tweets?.length > 0 && (
+                  {account.example_tweets?.length > 0 && (
                     <span className="text-xs bg-accent/20 text-text-primary px-2 py-1 rounded border border-accent/30">
-                      {cuenta.example_tweets.length} tweets de ejemplo
+                      {account.example_tweets.length} example tweets
                     </span>
                   )}
                 </div>
@@ -84,10 +84,10 @@ export default function CuentasList() {
               <button 
                 onClick={(e) => {
                   e.preventDefault();
-                  borrarCuenta(cuenta.id);
+                  deleteAccount(account.id);
                 }}
                 className="absolute -top-2 -right-2 bg-red-500/80 hover:bg-red-500 text-text-primary rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-all duration-200 transform hover:scale-110"
-                title="Eliminar cuenta"
+                title="Delete account"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />

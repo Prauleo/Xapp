@@ -3,17 +3,17 @@
 import { useState, useEffect } from 'react';
 
 export default function ThemeSwitcher() {
-  const [theme, setTheme] = useState('dark');
+  const [theme, setTheme] = useState('light');
 
   useEffect(() => {
-    // Set initial theme from localStorage or default to 'dark'
-    const savedTheme = localStorage.getItem('theme') || 'dark';
+    // Set initial theme from localStorage or default to 'light'
+    const savedTheme = localStorage.getItem('theme') || 'light';
     setTheme(savedTheme);
     document.documentElement.setAttribute('data-theme', savedTheme);
   }, []);
 
   const toggleTheme = () => {
-    const newTheme = theme === 'dark' ? 'shadow' : 'dark';
+    const newTheme = theme === 'light' ? 'dark' : 'light';
     setTheme(newTheme);
     document.documentElement.setAttribute('data-theme', newTheme);
     localStorage.setItem('theme', newTheme);
@@ -24,9 +24,9 @@ export default function ThemeSwitcher() {
       onClick={toggleTheme}
       className="fixed top-6 right-6 w-10 h-10 bg-accent text-text-primary rounded-full shadow-lg hover:opacity-90 flex items-center justify-center transition-opacity z-40"
       aria-label="Toggle theme"
-      title={`Switch to ${theme === 'dark' ? 'shadow' : 'dark'} mode`}
+      title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
     >
-      {theme === 'dark' ? (
+      {theme === 'light' ? (
         // Moon icon for dark mode
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -34,7 +34,7 @@ export default function ThemeSwitcher() {
           viewBox="0 0 24 24"
           strokeWidth={1.5}
           stroke="currentColor"
-          className="w-4 h-4"
+          className="w-5 h-5"
         >
           <path
             strokeLinecap="round"
@@ -43,14 +43,20 @@ export default function ThemeSwitcher() {
           />
         </svg>
       ) : (
-        // Circle icon for shadow mode
+        // Sun icon for light mode
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          fill="currentColor"
+          fill="none"
           viewBox="0 0 24 24"
-          className="w-4 h-4"
+          strokeWidth={1.5}
+          stroke="currentColor"
+          className="w-5 h-5"
         >
-          <circle cx="12" cy="12" r="10" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z"
+          />
         </svg>
       )}
     </button>

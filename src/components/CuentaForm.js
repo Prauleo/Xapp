@@ -9,7 +9,7 @@ export default function CuentaForm({ onSuccess }) {
   const { user } = useAuth();
   const [formData, setFormData] = useState({
     nombre: '',
-    idioma: 'es'
+    idioma: 'en'  // Changed default to English
   });
   const [exampleTweets, setExampleTweets] = useState([]);
   const [currentTweet, setCurrentTweet] = useState('');
@@ -28,12 +28,12 @@ export default function CuentaForm({ onSuccess }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // Verificar que haya tweets analizados
+      // Verify analyzed tweets
       if (Object.keys(tweetAnalyses).length === 0) {
-        throw new Error('Debes agregar al menos un tweet de ejemplo');
+        throw new Error('You must add at least one example tweet');
       }
 
-      // Primero creamos la cuenta
+      // First create the account
       const { data: cuentaData, error: cuentaError } = await supabase
         .from('cuentas')
         .insert([{ 
@@ -46,12 +46,12 @@ export default function CuentaForm({ onSuccess }) {
 
       if (cuentaError) throw cuentaError;
 
-      // Generamos la voz de la cuenta
-      setMessage('Generando voz de la cuenta...');
+      // Generate account voice
+      setMessage('Generating account voice profile...');
       const analysesText = Object.values(tweetAnalyses).join('\n');
       const voiceProfile = await generarVozCuenta(analysesText);
 
-      // Guardamos la voz en la tabla voces_cuenta
+      // Save voice in voces_cuenta table
       const { error: vozError } = await supabase
         .from('voces_cuenta')
         .insert([{
@@ -61,10 +61,10 @@ export default function CuentaForm({ onSuccess }) {
 
       if (vozError) throw vozError;
 
-      setMessage('¡Cuenta creada exitosamente! Voz generada.');
+      setMessage('Account created successfully! Voice profile generated.');
       setFormData({
         nombre: '',
-        idioma: 'es'
+        idioma: 'en'
       });
       setExampleTweets([]);
       setCurrentTweet('');
@@ -77,7 +77,7 @@ export default function CuentaForm({ onSuccess }) {
 
   return (
     <div className="max-w-md mx-auto mt-10 p-6 bg-bg-secondary rounded-lg shadow-lg border border-border">
-      <h2 className="text-2xl font-semibold mb-6 text-text-primary">Crear Nueva Cuenta</h2>
+      <h2 className="text-2xl font-semibold mb-6 text-text-primary">Create New Account</h2>
       
       {message && (
         <div className={`p-4 mb-4 rounded border ${message.includes('Error') ? 'border-red-500 bg-bg-primary text-red-400' : 'border-green-500 bg-bg-primary text-green-400'}`}>
@@ -87,7 +87,7 @@ export default function CuentaForm({ onSuccess }) {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-text-primary">Nombre de la cuenta</label>
+          <label className="block text-sm font-medium text-text-primary">Account Name</label>
           <input
             type="text"
             name="nombre"
@@ -99,13 +99,13 @@ export default function CuentaForm({ onSuccess }) {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-text-primary">Tweets de Ejemplo</label>
+          <label className="block text-sm font-medium text-text-primary">Example Tweets</label>
           <div className="flex gap-2 mb-2">
             <input
               type="text"
               value={currentTweet}
               onChange={(e) => setCurrentTweet(e.target.value)}
-              placeholder="Ingresa un tweet de ejemplo"
+              placeholder="Enter an example tweet"
               className="flex-1 rounded-md border-border bg-bg-primary text-text-primary shadow-sm focus:border-accent focus:ring-accent"
               disabled={analyzing}
             />
@@ -125,7 +125,7 @@ export default function CuentaForm({ onSuccess }) {
                     setCurrentTweet('');
                     setMessage('');
                   } catch (error) {
-                    setMessage('Error analizando tweet: ' + error.message);
+                    setMessage('Error analyzing tweet: ' + error.message);
                   }
                   setAnalyzing(false);
                 }
@@ -133,7 +133,7 @@ export default function CuentaForm({ onSuccess }) {
               disabled={analyzing}
               className={`bg-accent text-text-primary py-2 px-4 rounded-md hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-accent ${analyzing ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
-              {analyzing ? 'Analizando...' : 'Agregar'}
+              {analyzing ? 'Analyzing...' : 'Add'}
             </button>
           </div>
           
@@ -160,7 +160,7 @@ export default function CuentaForm({ onSuccess }) {
                     }}
                     className="text-red-400 hover:text-red-500"
                   >
-                    Eliminar
+                    Delete
                   </button>
                 </div>
               ))}
@@ -169,15 +169,15 @@ export default function CuentaForm({ onSuccess }) {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-text-primary">Idioma de publicación</label>
+          <label className="block text-sm font-medium text-text-primary">Publishing Language</label>
           <select
             name="idioma"
             value={formData.idioma}
             onChange={handleChange}
             className="mt-1 block w-full rounded-md border-border bg-bg-primary text-text-primary shadow-sm focus:border-accent focus:ring-accent"
           >
-            <option value="es">Español</option>
             <option value="en">English</option>
+            <option value="es">Spanish</option>
           </select>
         </div>
 
@@ -185,7 +185,7 @@ export default function CuentaForm({ onSuccess }) {
           type="submit"
           className="w-full bg-accent text-text-primary py-2 px-4 rounded-md hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-bg-primary transition-opacity"
         >
-          Crear Cuenta
+          Create Account
         </button>
       </form>
     </div>

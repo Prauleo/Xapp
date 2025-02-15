@@ -68,47 +68,87 @@ export default function Auth() {
   };
 
   if (loading) {
-    return <div className="flex justify-center p-4">Cargando...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-400 to-blue-600 py-12 px-4 sm:px-6 lg:px-8 relative">
+        {/* Floating shapes */}
+        <div className="absolute top-20 left-20 w-40 h-40 bg-white rounded-full opacity-20 animate-pulse"></div>
+        <div className="absolute bottom-20 right-20 w-60 h-60 bg-white rounded-full opacity-10 animate-bounce"></div>
+        
+        <div className="max-w-md w-full p-8 bg-white rounded-xl shadow-lg z-10">
+          <div className="flex flex-col items-center justify-center space-y-4">
+            <div className="w-16 h-16 border-4 border-blue-400 border-t-blue-600 rounded-full animate-spin"></div>
+            <p className="text-gray-600 text-lg">Loading...</p>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (user) {
     return (
-      <div className="max-w-md mx-auto p-4 bg-bg-secondary rounded-lg shadow-lg border border-border">
-        <div className="flex items-center gap-4 mb-4">
-          {user.user_metadata?.avatar_url && (
-            <img 
-              src={user.user_metadata.avatar_url} 
-              alt="Avatar" 
-              className="w-10 h-10 rounded-full"
-            />
-          )}
-          <div className="flex-1">
-            <p className="text-sm text-text-primary">{user.email}</p>
-            {user.user_metadata?.full_name && (
-              <p className="text-xs text-text-secondary">{user.user_metadata.full_name}</p>
-            )}
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-400 to-blue-600 py-12 px-4 sm:px-6 lg:px-8 relative">
+        {/* Floating shapes */}
+        <div className="absolute top-20 left-20 w-40 h-40 bg-white rounded-full opacity-20 animate-pulse"></div>
+        <div className="absolute bottom-20 right-20 w-60 h-60 bg-white rounded-full opacity-10 animate-bounce"></div>
+        
+        <div className="max-w-md w-full p-8 bg-white rounded-xl shadow-lg z-10">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl font-bold text-gray-900">User Profile</h2>
           </div>
-          <button
-            onClick={handleLogout}
-            className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
-          >
-            Cerrar Sesión
-          </button>
+          
+          <div className="flex flex-col items-center space-y-6">
+            {user.user_metadata?.avatar_url ? (
+              <img 
+                src={user.user_metadata.avatar_url} 
+                alt="Avatar" 
+                className="w-20 h-20 rounded-full shadow-lg"
+              />
+            ) : (
+              <div className="w-20 h-20 rounded-full bg-blue-100 flex items-center justify-center">
+                <span className="text-2xl text-blue-600">{user.email[0].toUpperCase()}</span>
+              </div>
+            )}
+            
+            <div className="text-center">
+              {user.user_metadata?.full_name && (
+                <h3 className="text-xl font-medium text-gray-900">{user.user_metadata.full_name}</h3>
+              )}
+              <p className="text-gray-600">{user.email}</p>
+            </div>
+            
+            <button
+              onClick={handleLogout}
+              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
+            >
+              Sign Out
+            </button>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-md mx-auto p-6 bg-bg-secondary rounded-lg shadow-lg border border-border">
-      <h2 className="text-2xl font-semibold mb-6 text-text-primary text-center">Iniciar Sesión</h2>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-400 to-blue-600 py-12 px-4 sm:px-6 lg:px-8 relative">
+      {/* Floating shapes */}
+      <div className="absolute top-20 left-20 w-40 h-40 bg-white rounded-full opacity-20 animate-pulse"></div>
+      <div className="absolute bottom-20 right-20 w-60 h-60 bg-white rounded-full opacity-10 animate-bounce"></div>
       
-      <div className="space-y-4">
-        <button
-          onClick={handleGoogleLogin}
-          disabled={loading}
-          className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-white text-gray-800 rounded hover:bg-gray-100 transition-colors border border-gray-300"
-        >
+      <div className="max-w-md w-full space-y-8 p-10 bg-white rounded-xl shadow-lg z-10">
+        <div className="text-center">
+          <h2 className="mt-6 text-3xl font-bold text-gray-900">
+            Wizardio
+          </h2>
+          <p className="text-lg text-blue-600 mb-4">Your Digital Magician</p>
+          <p className="mt-2 text-sm text-gray-600">Sign in to your account</p>
+        </div>
+        
+        <div className="mt-8 space-y-6">
+          <button
+            onClick={handleGoogleLogin}
+            disabled={loading}
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-white text-gray-800 rounded-md hover:bg-gray-50 transition-colors border border-gray-300 shadow-sm"
+          >
           <svg className="w-5 h-5" viewBox="0 0 24 24">
             <path
               fill="currentColor"
@@ -127,50 +167,64 @@ export default function Auth() {
               d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
             />
           </svg>
-          Continuar con Google
+          Continue with Google
         </button>
 
-        <div className="relative my-6">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-border"></div>
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-300"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-white text-gray-500">Or continue with email</span>
+            </div>
           </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-bg-secondary text-text-secondary">O continúa con email</span>
+
+          <div className="rounded-md shadow-sm -space-y-px">
+            <div>
+              <input
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="appearance-none rounded-t-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+              />
+            </div>
+            <div>
+              <input
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="appearance-none rounded-b-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+              />
+            </div>
           </div>
-        </div>
 
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="w-full px-4 py-2 rounded border border-border bg-bg-primary text-text-primary"
-        />
-        
-        <input
-          type="password"
-          placeholder="Contraseña"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full px-4 py-2 rounded border border-border bg-bg-primary text-text-primary"
-        />
+          <div className="flex items-center justify-between mt-6">
+            <div className="text-sm">
+              <a href="#" className="font-medium text-blue-600 hover:text-blue-500">
+                Forgot your password?
+              </a>
+            </div>
+          </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <button
-            onClick={() => handleEmailLogin('SIGNIN')}
-            disabled={loading}
-            className="px-4 py-2 bg-accent text-text-primary rounded hover:opacity-90 transition-opacity"
-          >
-            Ingresar
-          </button>
-          
-          <button
-            onClick={() => handleEmailLogin('SIGNUP')}
-            disabled={loading}
-            className="px-4 py-2 bg-bg-primary text-text-primary border border-border rounded hover:bg-bg-secondary transition-colors"
-          >
-            Registrarse
-          </button>
+          <div className="grid grid-cols-2 gap-4">
+            <button
+              onClick={() => handleEmailLogin('SIGNIN')}
+              disabled={loading}
+              className="group relative flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              Sign In
+            </button>
+            
+            <button
+              onClick={() => handleEmailLogin('SIGNUP')}
+              disabled={loading}
+              className="group relative flex justify-center py-2 px-4 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              Create Account
+            </button>
+          </div>
         </div>
       </div>
     </div>

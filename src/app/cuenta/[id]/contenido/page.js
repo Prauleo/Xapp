@@ -6,29 +6,29 @@ import { useAuth } from '../../../../components/AuthProvider';
 import { generarTweetsAutomaticos } from '../../../../utils/openai';
 import HistorialContenido from '../../../../components/HistorialContenido';
 
-export default function ContenidoPage() {
+export default function ContentPage() {
   const params = useParams();
   const router = useRouter();
   const { user } = useAuth();
-  const [cuenta, setCuenta] = useState(null);
+  const [account, setAccount] = useState(null);
   const [inputs, setInputs] = useState({
-    ideasPrincipales: '',
-    contexto: '',
-    longitud: 'mediano',
-    esThread: false
+    mainIdeas: '',
+    context: '',
+    length: 'medium',
+    isThread: false
   });
   const [tweets, setTweets] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [vozCuenta, setVozCuenta] = useState(null);
+  const [accountVoice, setAccountVoice] = useState(null);
 
   useEffect(() => {
-    const cargarCuenta = async () => {
+    const loadAccount = async () => {
       if (!params?.id) return;
       
       try {
-        // Cargar la cuenta y su voz
-        const [cuentaResult, vozResult] = await Promise.all([
+        // Load account and its voice
+        const [accountResult, voiceResult] = await Promise.all([
           supabase
             .from('cuentas')
             .select('*')
@@ -42,22 +42,22 @@ export default function ContenidoPage() {
             .single()
         ]);
         
-        if (cuentaResult.error || !cuentaResult.data) {
+        if (accountResult.error || !accountResult.data) {
           router.push('/');
           return;
         }
 
-        setCuenta(cuentaResult.data);
-        if (!vozResult.error && vozResult.data) {
-          setVozCuenta(vozResult.data.voz);
+        setAccount(accountResult.data);
+        if (!voiceResult.error && voiceResult.data) {
+          setAccountVoice(voiceResult.data.voz);
         }
       } catch (err) {
-        console.error('Error cargando cuenta:', err);
+        console.error('Error loading account:', err);
         setError(err.message);
       }
     };
 
-    cargarCuenta();
+    loadAccount();
   }, [params?.id]);
 
   const handleInputChange = (e) => {
@@ -68,9 +68,9 @@ export default function ContenidoPage() {
     }));
   };
 
-  const generarContenido = async () => {
-    if (!inputs.ideasPrincipales.trim()) {
-      setError('Por favor, ingresa tus ideas principales');
+  const generateContent = async () => {
+    if (!inputs.mainIdeas.trim()) {
+      setError('Please enter your main ideas');
       return;
     }
 
@@ -78,157 +78,157 @@ export default function ContenidoPage() {
     setError(null);
 
     try {
-      const tweetsGenerados = await generarTweetsAutomaticos({
-        ideas: inputs.ideasPrincipales,
-        contexto: inputs.contexto,
-        longitud: inputs.longitud,
-        esThread: inputs.esThread
-      }, cuenta, vozCuenta);
-      setTweets(tweetsGenerados);
+      const generatedTweets = await generarTweetsAutomaticos({
+        ideas: inputs.mainIdeas,
+        contexto: inputs.context,
+        longitud: inputs.length,
+        esThread: inputs.isThread
+      }, account, accountVoice);
+      setTweets(generatedTweets);
 
-      // Guardar en Supabase
-      const { error: guardarError } = await supabase
+      // Save to Supabase
+      const { error: saveError } = await supabase
         .from('contenido')
         .insert([{
           cuenta_id: params.id,
           user_id: user.id,
-          ideas_principales: inputs.ideasPrincipales,
-          contexto: inputs.contexto,
-          tweets: tweetsGenerados,
-          longitud: inputs.longitud,
-          es_thread: inputs.esThread,
+          ideas_principales: inputs.mainIdeas,
+          contexto: inputs.context,
+          tweets: generatedTweets,
+          longitud: inputs.length,
+          es_thread: inputs.isThread,
           necesita_imagen: false,
           fecha_creacion: new Date().toISOString()
         }]);
 
-      if (guardarError) throw guardarError;
+      if (saveError) throw saveError;
     } catch (err) {
-      console.error('Error generando contenido:', err);
+      console.error('Error generating content:', err);
       setError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
-  if (!cuenta) return <div className="text-center py-4 text-text-primary">Cargando cuenta...</div>;
+  if (!account) return <div className="text-center py-4 text-text-primary">Loading account...</div>;
   if (error) return <div className="text-red-400 py-4">Error: {error}</div>;
 
   return (
     <div className="container mx-auto p-4">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold mb-2 text-text-primary">{cuenta.nombre}</h1>
-        <p className="text-text-primary opacity-70">{cuenta.descripcion}</p>
+        <h1 className="text-2xl font-bold mb-2 text-text-primary">{account.nombre}</h1>
+        <p className="text-text-primary opacity-70">{account.descripcion}</p>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        {/* Panel de entrada */}
+        {/* Input Panel */}
         <div className="space-y-6">
           <div>
-            <h2 className="text-xl font-semibold mb-4 text-text-primary">Generar Contenido</h2>
+            <h2 className="text-xl font-semibold mb-4 text-text-primary">Generate Content</h2>
             
-            {/* Ideas Principales */}
+            {/* Main Ideas */}
             <div className="mb-6">
               <label className="block text-lg font-semibold text-text-primary mb-2">
-                Ideas Principales ★
+                Main Ideas ★
               </label>
               <p className="text-sm text-text-primary opacity-70 mb-2">
-                Escribe aquí tus ideas principales. Este contenido tendrá la máxima prioridad.
+                Write your main ideas here. This content will have the highest priority.
               </p>
               <textarea
-                name="ideasPrincipales"
-                value={inputs.ideasPrincipales}
+                name="mainIdeas"
+                value={inputs.mainIdeas}
                 onChange={handleInputChange}
-                placeholder="Escribe tus ideas principales aquí..."
+                placeholder="Write your main ideas here..."
                 className="w-full h-40 p-3 bg-bg-primary border border-border rounded-lg resize-none text-text-primary placeholder-text-primary/50 focus:ring-2 focus:ring-accent focus:border-accent"
                 required
               />
             </div>
 
-            {/* Contexto */}
+            {/* Context */}
             <div className="mb-6">
               <label className="block text-lg font-semibold text-text-primary mb-2">
-                Contexto de Referencia
+                Reference Context
               </label>
               <p className="text-sm text-text-primary opacity-70 mb-2">
-                Pega aquí artículos o información relevante para dar más contexto a tus ideas.
+                Paste relevant articles or information here to provide more context to your ideas.
               </p>
               <textarea
-                name="contexto"
-                value={inputs.contexto}
+                name="context"
+                value={inputs.context}
                 onChange={handleInputChange}
-                placeholder="Pega aquí artículos o tweets relevantes..."
+                placeholder="Paste relevant articles or tweets here..."
                 className="w-full h-40 p-3 bg-bg-primary border border-border rounded-lg resize-none text-text-primary placeholder-text-primary/50 focus:ring-2 focus:ring-accent focus:border-accent"
               />
             </div>
 
-            {/* Opciones de Tweet */}
+            {/* Tweet Options */}
             <div className="mb-6 space-y-4">
               <div>
                 <label className="block text-lg font-semibold text-text-primary mb-2">
-                  Longitud del Tweet
+                  Tweet Length
                 </label>
                 <select
-                  name="longitud"
-                  value={inputs.longitud}
+                  name="length"
+                  value={inputs.length}
                   onChange={handleInputChange}
                   className="w-full p-2 bg-bg-primary border border-border rounded-lg text-text-primary focus:ring-2 focus:ring-accent focus:border-accent"
                 >
-                  <option value="corto">Corto (hasta 180 caracteres)</option>
-                  <option value="mediano">Mediano (180-280 caracteres)</option>
-                  <option value="largo">Largo (280-500 caracteres)</option>
+                  <option value="short">Short (up to 180 characters)</option>
+                  <option value="medium">Medium (180-280 characters)</option>
+                  <option value="long">Long (280-500 characters)</option>
                 </select>
               </div>
 
               <div className="flex items-center space-x-2">
                 <input
                   type="checkbox"
-                  name="esThread"
-                  checked={inputs.esThread}
+                  name="isThread"
+                  checked={inputs.isThread}
                   onChange={handleInputChange}
                   className="w-4 h-4 text-accent border-border rounded focus:ring-accent"
                 />
                 <label className="text-text-primary">
-                  Generar como Thread
+                  Generate as Thread
                 </label>
               </div>
             </div>
 
             <button
-              onClick={generarContenido}
+              onClick={generateContent}
               disabled={loading}
               className={`w-full py-2 px-4 rounded-lg text-text-primary transition-opacity ${
                 loading ? 'bg-accent opacity-50 cursor-not-allowed' : 'bg-accent hover:opacity-90'
               }`}
             >
-              {loading ? 'Generando...' : 'Generar Tweets'}
+              {loading ? 'Generating...' : 'Generate Tweets'}
             </button>
           </div>
         </div>
 
-        {/* Panel de resultados */}
+        {/* Results Panel */}
         <div className="space-y-6">
           <div>
-            <h2 className="text-xl font-semibold mb-4 text-text-primary">Tweets Generados</h2>
+            <h2 className="text-xl font-semibold mb-4 text-text-primary">Generated Tweets</h2>
             {tweets.length > 0 ? (
               <div className="space-y-3">
                 {tweets.map((tweet, index) => (
                   <div key={index} className="p-4 border border-border rounded-lg bg-bg-secondary">
                     <div className="flex justify-between items-start gap-2">
                       <p className="text-text-primary flex-grow">
-                        {inputs.esThread ? tweet : tweet.replace(/^\d+\.\s*/, '')}
+                        {inputs.isThread ? tweet : tweet.replace(/^\d+\.\s*/, '')}
                       </p>
                       <button
                         onClick={() => {
                           navigator.clipboard.writeText(tweet.trim());
-                          // Opcional: Mostrar una notificación de copiado exitoso
+                          // Optional: Show copy success notification
                           const el = document.createElement('div');
                           el.className = 'fixed top-4 right-4 bg-accent text-text-primary px-4 py-2 rounded-lg shadow-lg';
-                          el.textContent = '¡Copiado!';
+                          el.textContent = 'Copied!';
                           document.body.appendChild(el);
                           setTimeout(() => el.remove(), 2000);
                         }}
                         className="p-2 text-text-primary hover:bg-accent/20 rounded-lg transition-colors"
-                        title="Copiar tweet"
+                        title="Copy tweet"
                       >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
@@ -240,12 +240,12 @@ export default function ContenidoPage() {
               </div>
             ) : (
               <p className="text-text-primary opacity-60">
-                Los tweets generados aparecerán aquí...
+                Generated tweets will appear here...
               </p>
             )}
           </div>
 
-          {/* Historial de contenido */}
+          {/* Content History */}
           <HistorialContenido cuentaId={params.id} />
         </div>
       </div>
