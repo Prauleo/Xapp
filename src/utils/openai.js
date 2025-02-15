@@ -7,66 +7,187 @@ const openai = new OpenAI({
 
 export async function generarTweetsAutomaticos(contextoCompleto, cuenta, vozCuenta) {
   try {
-    // Determinar límite de caracteres según longitud
-    const limiteCaracteres = {
-      corto: 100,
-      mediano: 180,
-      largo: 280
-    }[contextoCompleto.longitud] || 280;
+    // Determinar límites de caracteres para cada tweet según el tipo seleccionado
+    const limites = contextoCompleto.esThread ? {
+      tweet1: { min: 0, max: 280 },
+      tweet2: { min: 0, max: 280 },
+      tweet3: { min: 0, max: 280 }
+    } : {
+      corto: {
+        tweet1: { min: 0, max: 80 },     // El más corto
+        tweet2: { min: 80, max: 140 },   // Medio
+        tweet3: { min: 140, max: 200 }   // El más largo
+      },
+      mediano: {
+        tweet1: { min: 140, max: 200 }, // El más corto
+        tweet2: { min: 200, max: 250 }, // Medio
+        tweet3: { min: 250, max: 280 }  // El más largo
+      },
+      largo: {
+        tweet1: { min: 200, max: 280 }, // El más corto
+        tweet2: { min: 280, max: 380 }, // Medio
+        tweet3: { min: 380, max: 500 }  // El más largo
+      }
+    }[contextoCompleto.longitud] || {
+      tweet1: { min: 0, max: 280 },
+      tweet2: { min: 0, max: 280 },
+      tweet3: { min: 0, max: 280 }
+    };
+
+    // Example tweets with correct lengths based on language
+    const ejemplos = !contextoCompleto.esThread ? {
+      corto: cuenta.idioma === 'en' ? [
+        "A short example tweet showing the basic format (30-40 chars)",
+        "A slightly longer tweet that still fits within the medium range (80-90 characters here)",
+        "And finally a tweet that reaches the maximum character limit for this category, demonstrating the full length (150-160 chars)"
+      ] : [
+        "Un tweet corto de ejemplo (30-40 caracteres)",
+        "Un tweet un poco más largo pero aún dentro del rango medio (80-90 caracteres aquí)",
+        "Y finalmente un tweet que alcanza el máximo de caracteres permitidos para esta categoría, mostrando cómo se ve (150-160 caracteres)"
+      ],
+      mediano: cuenta.idioma === 'en' ? [
+        "This is an example tweet that meets the minimum range for the medium category. Notice how the content develops naturally without feeling forced (190-200 chars).",
+        "Here we have a tweet that represents the middle range. The content flows naturally and maintains reader interest while developing the idea (230-240 chars).",
+        "This tweet reaches the maximum for the medium category, using space effectively to convey complete information and maintain engagement (270-280 chars)."
+      ] : [
+        "Este es un ejemplo de tweet que cumple con el rango mínimo de la categoría mediana. Nótese cómo el contenido se desarrolla de manera natural sin parecer forzado (190-200 caracteres).",
+        "Aquí tenemos un tweet que representa el rango medio de la categoría. El contenido fluye naturalmente y mantiene el interés del lector mientras desarrolla la idea (230-240 caracteres).",
+        "Este tweet alcanza el máximo de la categoría mediana, utilizando el espacio de manera efectiva para transmitir información completa y mantener el engagement (270-280 caracteres)."
+      ],
+      largo: cuenta.idioma === 'en' ? [
+        "This tweet demonstrates the minimum range for the long category. Observe how the content develops in more detail, allowing for explanation of more complex concepts and providing additional context. (300-310 chars)",
+        "In this example of a medium-length tweet for the long category, we can see how the content is structured to maintain interest while developing a more elaborate idea. The length allows for more details and examples. (380-390 chars)",
+        "This tweet makes the most of the character limit for the long category. The additional space allows for developing complex ideas, including multiple viewpoints, and providing detailed context without losing reader interest. (480-500 chars)"
+      ] : [
+        "Este tweet demuestra el rango mínimo de la categoría larga. Observa cómo el contenido se desarrolla con más detalle, permitiendo explicar conceptos más complejos y proporcionar contexto adicional. (300-310 caracteres)",
+        "En este ejemplo de tweet de longitud media para la categoría larga, podemos ver cómo se estructura el contenido para mantener el interés mientras se desarrolla una idea más elaborada. La extensión permite incluir más detalles y ejemplos. (380-390 caracteres)",
+        "Este tweet aprovecha al máximo el límite de caracteres de la categoría larga. El espacio adicional permite desarrollar ideas complejas, incluir múltiples puntos de vista, y proporcionar contexto detallado sin perder el interés del lector. (480-500 caracteres)"
+      ]
+    }[contextoCompleto.longitud] : [];
+
+    const systemPrompt = `You are an expert in generating tweets with specific lengths. Your task is to generate tweets that EXACTLY match the specified character ranges.
+
+CORRECT LENGTH EXAMPLES:
+${ejemplos.map((ej, i) => `Tweet ${i + 1} (${ej.length} characters): ${ej}`).join('\n')}
+
+CRITICAL RULES:
+1. EXACT LENGTH: Each tweet MUST be within its specific character range. No exceptions.
+2. LENGTH PROGRESSION:
+   - Tweet 1: MUST be the shortest and within the minimum specified range
+   - Tweet 2: MUST have an intermediate length
+   - Tweet 3: MUST be the longest and utilize available space
+3. NATURAL CONTENT:
+   - Text must flow naturally
+   - Avoid artificial padding to reach length
+   - Maintain coherence and message quality
+4. RESTRICTIONS:
+   - DO NOT use hashtags under any circumstances
+   - DO NOT use numbering unless it's a thread
+   - DO NOT use unnecessary quotes
+
+IMPORTANT: Generate tweets in ${cuenta.idioma === 'en' ? 'ENGLISH' : 'SPANISH'} language only.`;
 
     const prompt = `
-      Actúa como un experto en creación de contenido para Twitter.
-      
       VOZ DE LA CUENTA:
       ${vozCuenta}
       
-      INSTRUCCIONES PRINCIPALES (${cuenta.idioma.toUpperCase()}):
-      1. Estilo visual: ${cuenta.estilo_visual}
-      2. Tono: ${cuenta.tono}
+      MAIN INSTRUCTIONS (${cuenta.idioma === 'en' ? 'ENGLISH' : 'ESPAÑOL'}):
+      1. Visual style: ${cuenta.estilo_visual}
+      2. Tone: ${cuenta.tono}
       
-      IDEAS DEL USUARIO (MAXIMA PRIORIDAD):
+      USER IDEAS (HIGHEST PRIORITY):
       ${contextoCompleto.ideas}
 
-      CONTEXTO COMPLEMENTARIO:
+      COMPLEMENTARY CONTEXT:
       ${contextoCompleto.contexto}
 
-      CONFIGURACIÓN:
-      - Longitud máxima por tweet: ${limiteCaracteres} caracteres
-      - Formato: ${contextoCompleto.esThread ? 'Thread (hilos conectados)' : 'Tweets independientes'}
+      CONFIGURATION:
+      - Format: ${contextoCompleto.esThread ? 'Thread (connected tweets)' : 'Independent tweets'}
+      ${contextoCompleto.esThread 
+        ? '- 280 characters limit per tweet'
+        : `- Tweet 1: MUST be between ${limites.tweet1.min} and ${limites.tweet1.max} characters
+      - Tweet 2: MUST be between ${limites.tweet2.min} and ${limites.tweet2.max} characters
+      - Tweet 3: MUST be between ${limites.tweet3.min} and ${limites.tweet3.max} characters`}
 
-      Generar 3 tweets en ${cuenta.idioma === 'es' ? 'español' : 'inglés'} que:
-      - Sigan ESTRICTAMENTE la voz de la cuenta proporcionada
-      - Se ajusten al estilo visual
-      - Mantengan el tono especificado
-      - Reflejen principalmente las ideas del usuario
-      - Respeten el límite de ${limiteCaracteres} caracteres
-      - Sean atractivos y generen engagement
-      - No incluyan hashtags, solo texto puro
-      ${contextoCompleto.esThread ? '- Mantengan una narrativa coherente entre tweets\n      - Cada tweet debe continuar naturalmente del anterior' : '- Sean independientes entre sí'}
-
-      Formato de respuesta:
-      - Un tweet por línea
-      - ${contextoCompleto.esThread ? 'No incluir numeración, se agregará automáticamente' : 'Sin numeración ni viñetas'}
-      - Sin comillas ni otros caracteres especiales
+      Response format:
+      - One tweet per line
+      - ${contextoCompleto.esThread ? 'Include numbering (1/, 2/, 3/) at the start of each tweet' : 'No numbering or bullets'}
+      - Do not use quotes unless they are textual quotes within the tweet
+      - No unnecessary special characters
     `;
 
     const response = await openai.chat.completions.create({
-      model: "gpt-4",
-      messages: [{ role: "user", content: prompt }],
-      temperature: 0.7,
-      max_tokens: 500
+      model: "gpt-4o-mini",
+      messages: [
+        { 
+          role: "system", 
+          content: systemPrompt
+        },
+        { 
+          role: "user", 
+          content: prompt 
+        }
+      ],
+      temperature: 0.5, // Reducimos la temperatura para resultados más consistentes
+      max_tokens: 1500,
+      presence_penalty: 0.3, // Añadimos penalización de presencia para más variedad
+      frequency_penalty: 0.3 // Añadimos penalización de frecuencia para más variedad
     });
 
     // Procesamos la respuesta para obtener los tweets individuales
-    const tweets = response.choices[0].message.content
+    let tweets = response.choices[0].message.content
       .split('\n')
       .filter(tweet => tweet.trim().length > 0)
       .slice(0, 3); // Nos aseguramos de tomar solo 3 tweets
 
+    // Procesamos los tweets según si es thread o no
+    if (contextoCompleto.esThread) {
+      // Para threads, verificamos que cada tweet tenga el formato correcto (1/, 2/, 3/)
+      tweets = tweets.map((tweet, index) => {
+        if (!tweet.startsWith(`${index + 1}/`)) {
+          return `${index + 1}/ ${tweet}`;
+        }
+        return tweet;
+      });
+    } else {
+      // Para tweets individuales, ordenamos por longitud y verificamos límites
+      tweets = tweets.map(tweet => {
+        // Eliminamos comillas al inicio y final si existen
+        return tweet.replace(/^["'](.+)["']$/, '$1');
+      }).sort((a, b) => a.length - b.length);
+
+      // Verificamos que cada tweet cumpla con sus límites
+      const tweetsConLongitud = tweets.map((tweet, index) => ({
+        tweet,
+        longitud: tweet.length,
+        limite: limites[`tweet${index + 1}`]
+      }));
+
+      console.log('Tweets generados con longitudes:', tweetsConLongitud);
+
+      // Verificación más flexible de los límites
+      const tweetsInvalidos = tweetsConLongitud.filter(({ tweet, longitud, limite }) => {
+        // Permitimos un margen de error de 20 caracteres por debajo del mínimo
+        const minFlexible = Math.max(0, limite.min - 20);
+        return longitud < minFlexible || longitud > limite.max;
+      });
+
+      if (tweetsInvalidos.length > 0) {
+        console.warn('Algunos tweets están fuera del rango ideal, pero dentro del margen permitido');
+        // No lanzamos error, solo registramos la advertencia
+      }
+
+      // Asegurarnos de que los tweets estén ordenados por longitud
+      tweets = tweetsConLongitud
+        .sort((a, b) => a.longitud - b.longitud)
+        .map(({ tweet }) => tweet);
+    }
+
     return tweets;
   } catch (error) {
     console.error('Error generando tweets:', error);
-    throw new Error('No se pudieron generar los tweets. Por favor, intenta de nuevo.');
+    // Propagar el mensaje de error detallado si existe
+    throw new Error(error.message || 'No se pudieron generar los tweets. Por favor, intenta de nuevo.');
   }
 }
 
@@ -112,7 +233,7 @@ OUTPUT FORMAT:
 `;
 
     const response = await openai.chat.completions.create({
-      model: "gpt-4",
+      model: "gpt-4o-mini",
       messages: [{ role: "user", content: prompt }],
       temperature: 0.7,
       max_tokens: 1500
@@ -198,7 +319,7 @@ Output: [Style-mapped version] (demonstrate transformation logic)
     `;
 
     const response = await openai.chat.completions.create({
-      model: "gpt-4",
+      model: "gpt-4o-mini",
       messages: [{ role: "user", content: prompt }],
       temperature: 0.7,
       max_tokens: 1500

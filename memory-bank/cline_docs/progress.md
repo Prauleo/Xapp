@@ -25,6 +25,24 @@
 7. ✅ Implementación de opciones de longitud de tweets.
 8. ✅ Implementación de funcionalidad de threads.
 
+## Actualizaciones Recientes
+- **Modificación de la función `generarTweetsAutomaticos`**:
+  - Se ajustaron los límites de caracteres para las categorías de tweets:
+    - **Corto**: 
+      - Tweet 1: 0-80 caracteres
+      - Tweet 2: 80-140 caracteres
+      - Tweet 3: 140-200 caracteres
+    - **Mediano**: 
+      - Tweet 1: 140-200 caracteres
+      - Tweet 2: 200-250 caracteres
+      - Tweet 3: 250-280 caracteres
+    - **Largo**: 
+      - Tweet 1: 200-280 caracteres
+      - Tweet 2: 280-380 caracteres
+      - Tweet 3: 380-500 caracteres
+  - Se implementó un margen de tolerancia de 20 caracteres por debajo del mínimo para mayor flexibilidad.
+  - Se reemplazó el error de longitud por una advertencia en consola.
+
 ## Próximos Pasos
 1. **Pruebas y Validación**:
    - Probar la generación de contenido con diferentes longitudes.
