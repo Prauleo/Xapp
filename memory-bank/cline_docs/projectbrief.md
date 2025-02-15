@@ -24,3 +24,4 @@ Este proyecto tiene como objetivo revolucionar la creación de contenido en Twit
 
 ## Actualización Reciente
 - Se ha creado la tabla `voces_cuenta` para almacenar la voz generada de cada cuenta, lo que permitirá una personalización aún más profunda en la generación de contenido.
+- Se han agregado las columnas `es_thread` y `longitud` a la tabla `contenido` para mejorar la funcionalidad de generación de contenido.

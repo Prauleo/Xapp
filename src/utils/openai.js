@@ -5,10 +5,20 @@ const openai = new OpenAI({
   dangerouslyAllowBrowser: true
 });
 
-export async function generarTweetsAutomaticos(contextoCompleto, cuenta) {
+export async function generarTweetsAutomaticos(contextoCompleto, cuenta, vozCuenta) {
   try {
+    // Determinar límite de caracteres según longitud
+    const limiteCaracteres = {
+      corto: 100,
+      mediano: 180,
+      largo: 280
+    }[contextoCompleto.longitud] || 280;
+
     const prompt = `
       Actúa como un experto en creación de contenido para Twitter.
+      
+      VOZ DE LA CUENTA:
+      ${vozCuenta}
       
       INSTRUCCIONES PRINCIPALES (${cuenta.idioma.toUpperCase()}):
       1. Estilo visual: ${cuenta.estilo_visual}
@@ -20,17 +30,23 @@ export async function generarTweetsAutomaticos(contextoCompleto, cuenta) {
       CONTEXTO COMPLEMENTARIO:
       ${contextoCompleto.contexto}
 
+      CONFIGURACIÓN:
+      - Longitud máxima por tweet: ${limiteCaracteres} caracteres
+      - Formato: ${contextoCompleto.esThread ? 'Thread (hilos conectados)' : 'Tweets independientes'}
+
       Generar 3 tweets en ${cuenta.idioma === 'es' ? 'español' : 'inglés'} que:
+      - Sigan ESTRICTAMENTE la voz de la cuenta proporcionada
       - Se ajusten al estilo visual
       - Mantengan el tono especificado
       - Reflejen principalmente las ideas del usuario
-      - Tengan máximo 280 caracteres
+      - Respeten el límite de ${limiteCaracteres} caracteres
       - Sean atractivos y generen engagement
       - No incluyan hashtags, solo texto puro
+      ${contextoCompleto.esThread ? '- Mantengan una narrativa coherente entre tweets\n      - Cada tweet debe continuar naturalmente del anterior' : '- Sean independientes entre sí'}
 
       Formato de respuesta:
       - Un tweet por línea
-      - Sin numeración ni viñetas
+      - ${contextoCompleto.esThread ? 'No incluir numeración, se agregará automáticamente' : 'Sin numeración ni viñetas'}
       - Sin comillas ni otros caracteres especiales
     `;
 

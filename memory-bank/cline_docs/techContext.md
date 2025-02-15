@@ -34,6 +34,20 @@
    - `created_at`: TIMESTAMP WITH TIME ZONE
    - `updated_at`: TIMESTAMP WITH TIME ZONE
 
+3. **contenido**:
+   - `id`: SERIAL (Primary Key)
+   - `cuenta_id`: UUID (Referencia a cuentas)
+   - `contexto`: TEXT
+   - `tweets`: TEXT[]
+   - `estado`: CHARACTER VARYING(20) DEFAULT 'borrador'
+   - `necesita_imagen`: BOOLEAN DEFAULT FALSE
+   - `prompt_imagen`: TEXT
+   - `fecha_creacion`: TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW()
+   - `ideas_principales`: TEXT
+   - `user_id`: UUID (Referencia a auth.users)
+   - `es_thread`: BOOLEAN DEFAULT FALSE
+   - `longitud`: CHARACTER VARYING(20) DEFAULT 'mediano'
+
 ### Políticas de Seguridad
 - Implementadas políticas RLS (Row Level Security) en todas las tablas
 - Acceso restringido por usuario mediante auth.uid()

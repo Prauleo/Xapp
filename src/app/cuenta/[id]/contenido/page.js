@@ -13,30 +13,44 @@ export default function ContenidoPage() {
   const [cuenta, setCuenta] = useState(null);
   const [inputs, setInputs] = useState({
     ideasPrincipales: '',
-    contexto: ''
+    contexto: '',
+    longitud: 'mediano',
+    esThread: false
   });
   const [tweets, setTweets] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [vozCuenta, setVozCuenta] = useState(null);
 
   useEffect(() => {
     const cargarCuenta = async () => {
       if (!params?.id) return;
       
       try {
-        const { data, error } = await supabase
-          .from('cuentas')
-          .select('*')
-          .eq('id', params.id)
-          .eq('user_id', user.id)
-          .single();
+        // Cargar la cuenta y su voz
+        const [cuentaResult, vozResult] = await Promise.all([
+          supabase
+            .from('cuentas')
+            .select('*')
+            .eq('id', params.id)
+            .eq('user_id', user.id)
+            .single(),
+          supabase
+            .from('voces_cuenta')
+            .select('voz')
+            .eq('cuenta_id', params.id)
+            .single()
+        ]);
         
-        if (error || !data) {
-          // Si no hay datos o hay error, significa que la cuenta no pertenece al usuario
+        if (cuentaResult.error || !cuentaResult.data) {
           router.push('/');
           return;
         }
-        setCuenta(data);
+
+        setCuenta(cuentaResult.data);
+        if (!vozResult.error && vozResult.data) {
+          setVozCuenta(vozResult.data.voz);
+        }
       } catch (err) {
         console.error('Error cargando cuenta:', err);
         setError(err.message);
@@ -47,10 +61,10 @@ export default function ContenidoPage() {
   }, [params?.id]);
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
     setInputs(prev => ({
       ...prev,
-      [name]: value
+      [name]: type === 'checkbox' ? checked : value
     }));
   };
 
@@ -65,9 +79,11 @@ export default function ContenidoPage() {
 
     try {
       const tweetsGenerados = await generarTweetsAutomaticos({
-        ideasPrincipales: inputs.ideasPrincipales,
-        contexto: inputs.contexto
-      }, cuenta);
+        ideas: inputs.ideasPrincipales,
+        contexto: inputs.contexto,
+        longitud: inputs.longitud,
+        esThread: inputs.esThread
+      }, cuenta, vozCuenta);
       setTweets(tweetsGenerados);
 
       // Guardar en Supabase
@@ -79,6 +95,8 @@ export default function ContenidoPage() {
           ideas_principales: inputs.ideasPrincipales,
           contexto: inputs.contexto,
           tweets: tweetsGenerados,
+          longitud: inputs.longitud,
+          es_thread: inputs.esThread,
           necesita_imagen: false,
           fecha_creacion: new Date().toISOString()
         }]);
@@ -143,6 +161,38 @@ export default function ContenidoPage() {
               />
             </div>
 
+            {/* Opciones de Tweet */}
+            <div className="mb-6 space-y-4">
+              <div>
+                <label className="block text-lg font-semibold text-text-primary mb-2">
+                  Longitud del Tweet
+                </label>
+                <select
+                  name="longitud"
+                  value={inputs.longitud}
+                  onChange={handleInputChange}
+                  className="w-full p-2 bg-bg-primary border border-border rounded-lg text-text-primary focus:ring-2 focus:ring-accent focus:border-accent"
+                >
+                  <option value="corto">Corto (hasta 100 caracteres)</option>
+                  <option value="mediano">Mediano (hasta 180 caracteres)</option>
+                  <option value="largo">Largo (hasta 280 caracteres)</option>
+                </select>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  name="esThread"
+                  checked={inputs.esThread}
+                  onChange={handleInputChange}
+                  className="w-4 h-4 text-accent border-border rounded focus:ring-accent"
+                />
+                <label className="text-text-primary">
+                  Generar como Thread
+                </label>
+              </div>
+            </div>
+
             <button
               onClick={generarContenido}
               disabled={loading}
@@ -163,7 +213,9 @@ export default function ContenidoPage() {
               <div className="space-y-3">
                 {tweets.map((tweet, index) => (
                   <div key={index} className="p-4 border border-border rounded-lg bg-bg-secondary">
-                    <p className="text-text-primary">{tweet}</p>
+                    <p className="text-text-primary">
+                      {inputs.esThread ? `${index + 1}/ ` : ''}{tweet}
+                    </p>
                   </div>
                 ))}
               </div>

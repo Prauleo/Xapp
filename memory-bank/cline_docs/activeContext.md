@@ -3,6 +3,8 @@ Actualmente he agregado una capa de seguridad con Google Authenticator para el c
 
 ## Cambios Recientes
 - Se ha agregado una capa de seguridad con Google Authenticator para el correo del estudio.
+- Se ha integrado la voz de la cuenta en la generación de contenido.
+- Se han implementado opciones de longitud de tweets y funcionalidad de threads.
 
 ## Próximos Pasos
 1. **Agregar la sección del prompt textual de Midjourney**:
