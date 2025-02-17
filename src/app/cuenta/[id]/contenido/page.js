@@ -5,6 +5,7 @@ import { supabase } from '../../../../utils/supabaseClient';
 import { useAuth } from '../../../../components/AuthProvider';
 import { generarTweetsAutomaticos } from '../../../../utils/openai';
 import HistorialContenido from '../../../../components/HistorialContenido';
+import WizardioLogo from '../../../../components/WizardioLogo';
 
 export default function ContentPage() {
   const params = useParams();
@@ -115,6 +116,9 @@ export default function ContentPage() {
 
   return (
     <div className="container mx-auto p-4">
+      <div className="text-center mb-8">
+        <WizardioLogo className="mx-auto mb-6" width={100} height={100} />
+      </div>
       <div className="mb-6">
         <h1 className="text-2xl font-bold mb-2 text-text-primary">{account.nombre}</h1>
         <p className="text-text-primary opacity-70">{account.descripcion}</p>

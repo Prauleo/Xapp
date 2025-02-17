@@ -6,6 +6,11 @@ Actualmente he agregado una capa de seguridad con Google Authenticator para el c
 - Se ha integrado la voz de la cuenta en la generación de contenido.
 - Se han implementado opciones de longitud de tweets y funcionalidad de threads.
 
+## Cambios Recientes
+- Se ha agregado el logo de Wizardio en la parte superior del dashboard.
+- Se ha implementado un botón de configuración para editar cuentas.
+- Se ha restaurado la funcionalidad del botón de logout en la esquina superior izquierda.
+
 ## Próximos Pasos
 1. **Agregar la sección del prompt textual de Midjourney**:
    - Esta sección irá acompañando los tweets generados.

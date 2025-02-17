@@ -26,9 +26,18 @@ export function AuthProvider({ children }) {
     return () => subscription.unsubscribe();
   }, []);
 
+  const signOut = async () => {
+    try {
+      await supabase.auth.signOut();
+    } catch (error) {
+      console.error('Error signing out:', error.message);
+    }
+  };
+
   const value = {
     user,
     loading,
+    signOut,
   };
 
   return (
