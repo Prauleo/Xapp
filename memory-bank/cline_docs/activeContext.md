@@ -11,6 +11,12 @@ Actualmente he agregado una capa de seguridad con Google Authenticator para el c
 - Se ha implementado un botón de configuración para editar cuentas.
 - Se ha restaurado la funcionalidad del botón de logout en la esquina superior izquierda.
 
+## Cambios Recientes
+- Se ha implementado una nueva funcionalidad para Instagram, que incluye:
+  - Un dashboard específico para la cuenta de Instagram con filtros de contenido (Personal, Narrativa, Behind the Scenes).
+  - Un editor de contenido que permite redactar captions, subir imágenes y organizar publicaciones en un storyboard.
+  - Un historial de prompts para reutilizar ideas de contenido.
+  
 ## Próximos Pasos
 1. **Agregar la sección del prompt textual de Midjourney**:
    - Esta sección irá acompañando los tweets generados.

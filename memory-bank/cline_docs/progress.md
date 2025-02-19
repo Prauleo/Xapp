@@ -48,6 +48,12 @@
   - Optimización de la experiencia de usuario en formularios.
   - Rediseño del sistema de autenticación y perfil de usuario.
 
+## Actualizaciones Recientes
+- Se ha implementado una nueva funcionalidad para Instagram, que incluye:
+  - Un dashboard específico para la cuenta de Instagram con filtros de contenido (Personal, Narrativa, Behind the Scenes).
+  - Un editor de contenido que permite redactar captions, subir imágenes y organizar publicaciones en un storyboard.
+  - Un historial de prompts para reutilizar ideas de contenido.
+
 ## Próximos Pasos
 1. **Pruebas y Validación**:
    - Probar la generación de contenido con diferentes longitudes.

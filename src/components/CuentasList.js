@@ -72,10 +72,27 @@ export default function CuentasList() {
         <div className="grid gap-4">
           {cuentas.map((account) => (
             <div key={account.id} className="group relative">
-              <Link
-                href={`/cuenta/${account.id}/contenido`}
-                className="block p-4 border border-border rounded-lg bg-bg-secondary hover:bg-accent/10 transition-colors"
-              >
+              <div className="block p-4 border border-border rounded-lg bg-bg-secondary">
+                <div className="flex gap-4 mb-4">
+                  <Link
+                    href={`/cuenta/${account.id}/contenido`}
+                    className="flex-1 p-3 rounded-lg bg-bg-primary hover:bg-accent/10 transition-colors flex items-center gap-2"
+                  >
+                    <svg className="w-5 h-5 text-text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                    </svg>
+                    <span>Twitter Content</span>
+                  </Link>
+                  <Link
+                    href={`/cuenta/${account.id}/instagram`}
+                    className="flex-1 p-3 rounded-lg bg-bg-primary hover:bg-accent/10 transition-colors flex items-center gap-2"
+                  >
+                    <svg className="w-5 h-5 text-text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <span>Instagram Content</span>
+                  </Link>
+                </div>
                 <h3 className="font-medium text-lg text-text-primary">{account.nombre}</h3>
                 <p className="text-text-primary opacity-70 mt-1">{account.descripcion}</p>
                 <div className="flex flex-wrap gap-2 mt-2">
@@ -88,7 +105,7 @@ export default function CuentasList() {
                     </span>
                   )}
                 </div>
-              </Link>
+              </div>
               <div className="absolute -top-2 -right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-200">
                 <button 
                   onClick={(e) => {
