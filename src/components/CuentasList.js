@@ -18,6 +18,23 @@ export default function CuentasList() {
     if (!confirm) return;
 
     try {
+      // Primero eliminamos los registros relacionados en voces_cuenta
+      const { error: vozError } = await supabase
+        .from('voces_cuenta')
+        .delete()
+        .eq('cuenta_id', id);
+      
+      if (vozError) throw vozError;
+      
+      // Luego eliminamos los registros relacionados en contenido
+      const { error: contenidoError } = await supabase
+        .from('contenido')
+        .delete()
+        .eq('cuenta_id', id);
+      
+      if (contenidoError) throw contenidoError;
+
+      // Finalmente eliminamos la cuenta
       const { error } = await supabase
         .from('cuentas')
         .delete()
@@ -29,7 +46,7 @@ export default function CuentasList() {
       setCuentas(cuentas.filter(account => account.id !== id));
     } catch (err) {
       console.error('Error deleting account:', err);
-      alert('Error deleting the account');
+      alert(`Error deleting account: ${err.message || 'Unknown error'}`);
     }
   };
 

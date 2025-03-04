@@ -16,6 +16,7 @@ export default function CuentaForm({ onSuccess }) {
   const [message, setMessage] = useState('');
   const [tweetAnalyses, setTweetAnalyses] = useState({});
   const [analyzing, setAnalyzing] = useState(false);
+  const [expandedTweet, setExpandedTweet] = useState(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -138,11 +139,23 @@ export default function CuentaForm({ onSuccess }) {
           </div>
           
           {exampleTweets.length > 0 && (
-            <div className="mt-2 space-y-2">
+            <div className="mt-2 space-y-2 max-h-60 overflow-y-auto pr-2">
               {exampleTweets.map((tweet, index) => (
                 <div key={index} className="flex items-center gap-2 p-2 rounded bg-bg-primary border border-border">
                   <p className="flex-1 text-sm text-text-primary">
-                    {tweet}
+                    {tweet.length > 100 ? (
+                      <>
+                        {expandedTweet === index ? tweet : tweet.substring(0, 100) + '...'}
+                        <button 
+                          className="text-accent ml-1 text-xs" 
+                          onClick={() => setExpandedTweet(expandedTweet === index ? null : index)}
+                        >
+                          {expandedTweet === index ? 'Show less' : 'Read more'}
+                        </button>
+                      </>
+                    ) : (
+                      tweet
+                    )}
                     {tweetAnalyses[tweet] && (
                       <span className="hidden">{tweetAnalyses[tweet]}</span>
                     )}
