@@ -65,10 +65,10 @@ export async function generarTweetsAutomaticos(contextoCompleto, cuenta, vozCuen
       ]
     }[contextoCompleto.longitud] : [];
 
-    const systemPrompt = `You are an expert in generating tweets with specific lengths. Your task is to generate tweets that EXACTLY match the specified character ranges.
+const systemPrompt = `You are an expert in generating tweets with specific lengths. Your task is to generate tweets that EXACTLY match the specified character ranges.
 
 CORRECT LENGTH EXAMPLES:
-${ejemplos.map((ej, i) => `Tweet ${i + 1} (${ej.length} characters): ${ej}`).join('\n')}
+${Array.isArray(ejemplos) ? ejemplos.map((ej, i) => `Tweet ${i + 1} (${ej.length} characters): ${ej}`).join('\n') : ''}
 
 CRITICAL RULES:
 1. EXACT LENGTH: Each tweet MUST be within its specific character range. No exceptions.
@@ -135,13 +135,16 @@ IMPORTANT: Generate tweets in ${cuenta.idioma === 'en' ? 'ENGLISH' : 'SPANISH'} 
     });
 
     // Procesamos la respuesta para obtener los tweets individuales
-    let tweets = response.choices[0].message.content
-      .split('\n')
-      .filter(tweet => tweet.trim().length > 0)
-      .slice(0, 3); // Nos aseguramos de tomar solo 3 tweets
+    let tweets = [];
+    if (response?.choices?.[0]?.message?.content) {
+      tweets = response.choices[0].message.content
+        .split('\n')
+        .filter(tweet => tweet.trim().length > 0)
+        .slice(0, 3); // Nos aseguramos de tomar solo 3 tweets
+    }
 
     // Procesamos los tweets según si es thread o no
-    if (contextoCompleto.esThread) {
+    if (contextoCompleto.esThread && Array.isArray(tweets) && tweets.length > 0) {
       // Para threads, verificamos que cada tweet tenga el formato correcto (1/, 2/, 3/)
       tweets = tweets.map((tweet, index) => {
         if (!tweet.startsWith(`${index + 1}/`)) {
@@ -149,7 +152,7 @@ IMPORTANT: Generate tweets in ${cuenta.idioma === 'en' ? 'ENGLISH' : 'SPANISH'} 
         }
         return tweet;
       });
-    } else {
+    } else if (Array.isArray(tweets) && tweets.length > 0) {
       // Para tweets individuales, ordenamos por longitud y verificamos límites
       tweets = tweets.map(tweet => {
         // Eliminamos comillas al inicio y final si existen
