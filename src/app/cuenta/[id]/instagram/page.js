@@ -1,11 +1,20 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '../../../../utils/supabaseClient';
 import { useAuth } from '../../../../components/AuthProvider';
 import WizardioLogo from '../../../../components/WizardioLogo';
 import TimelineCanvas from '../../../../components/TimelineCanvas';
-import { createNarrativeEpisode, getNarrativeEpisodes, createSimplePost, getSimplePosts } from '../../../../utils/instagramContent';
+import EpisodeLibrary from '../../../../components/EpisodeLibrary';
+import { 
+  createNarrativeEpisode, 
+  getNarrativeEpisodes, 
+  createSimplePost, 
+  getSimplePosts,
+  uploadImageToSupabase,
+  toggleEpisodeArchiveStatus
+} from '../../../../utils/instagramContent';
+import Image from 'next/image';
 
 // Componente para la sección de Narrativa
 const NarrativaSection = ({ accountId }) => {
@@ -19,6 +28,9 @@ const NarrativaSection = ({ accountId }) => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
+  const [image, setImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const fileInputRef = useRef(null);
 
   // Cargar episodios al montar el componente
   useEffect(() => {
@@ -49,6 +61,36 @@ const NarrativaSection = ({ accountId }) => {
     setTags(tags.filter(tag => tag !== tagToRemove));
   };
 
+  // Manejar la selección de imágenes
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Validar que sea una imagen
+    if (!file.type.startsWith('image/')) {
+      alert('Por favor selecciona un archivo de imagen válido');
+      return;
+    }
+
+    setImage(file);
+    
+    // Crear una URL para la vista previa
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setImagePreview(e.target.result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Limpiar la imagen seleccionada
+  const handleClearImage = () => {
+    setImage(null);
+    setImagePreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   const handleSaveEpisode = async () => {
     if (!title.trim()) {
       alert('Por favor ingresa un título para el episodio');
@@ -57,6 +99,18 @@ const NarrativaSection = ({ accountId }) => {
 
     setSaving(true);
     try {
+      // Primero subimos la imagen si existe
+      let imageUrl = null;
+      if (image) {
+        const { url, error: uploadError } = await uploadImageToSupabase(image, 'episodes');
+        if (uploadError) {
+          console.error('Error uploading image:', uploadError);
+          throw new Error(`Error al subir la imagen: ${uploadError.message}`);
+        }
+        imageUrl = url;
+      }
+
+      // Luego creamos el episodio con la URL de la imagen
       const { episode, error } = await createNarrativeEpisode({
         accountId,
         title,
@@ -65,7 +119,8 @@ const NarrativaSection = ({ accountId }) => {
         tags,
         arc,
         position: { x: 100, y: 100 }, // Posición inicial por defecto
-        connections: []
+        connections: [],
+        imageUrl
       });
 
       if (error) throw error;
@@ -76,6 +131,7 @@ const NarrativaSection = ({ accountId }) => {
       setClosure('complete');
       setTags([]);
       setArc('');
+      handleClearImage();
 
       // Actualizar la lista de episodios
       setEpisodes(prev => [...prev, episode]);
@@ -83,7 +139,7 @@ const NarrativaSection = ({ accountId }) => {
       alert('Episodio creado exitosamente');
     } catch (err) {
       console.error('Error saving episode:', err);
-      alert('Error al guardar el episodio');
+      alert(`Error al guardar el episodio: ${err.message || 'Error desconocido'}`);
     } finally {
       setSaving(false);
     }
@@ -195,6 +251,55 @@ const NarrativaSection = ({ accountId }) => {
               />
             </div>
 
+            {/* Imagen del Episodio */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-text-primary mb-2">
+                Imagen del Episodio
+              </label>
+              <div 
+                className="border-2 border-dashed border-border rounded-lg p-4 text-center cursor-pointer hover:bg-bg-primary/50 transition-colors"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                {imagePreview ? (
+                  <div className="relative">
+                    <img 
+                      src={imagePreview} 
+                      alt="Vista previa" 
+                      className="max-h-48 mx-auto rounded-lg"
+                    />
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleClearImage();
+                      }}
+                      className="absolute top-2 right-2 bg-bg-primary text-text-primary rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-500 hover:text-white"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-2 py-4">
+                    <svg className="w-12 h-12 mx-auto text-text-primary opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <p className="text-text-primary opacity-70">
+                      Haz clic para subir una imagen
+                    </p>
+                    <p className="text-text-primary opacity-50 text-xs">
+                      O arrastra y suelta una imagen aquí
+                    </p>
+                  </div>
+                )}
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleImageChange}
+                  accept="image/*"
+                  className="hidden"
+                />
+              </div>
+            </div>
+
             {/* Botón de Guardar */}
             <button
               onClick={handleSaveEpisode}
@@ -206,12 +311,59 @@ const NarrativaSection = ({ accountId }) => {
           </div>
         </div>
 
-        {/* Canvas de Línea de Tiempo */}
+        {/* Canvas de Línea de Tiempo y Biblioteca de Episodios */}
         <div className="space-y-6">
           <div className="p-6 bg-bg-secondary rounded-lg border border-border">
             <h3 className="text-lg font-semibold mb-4 text-text-primary">Línea de Tiempo</h3>
-            <div className="border-2 border-border rounded-lg h-[400px] relative overflow-hidden">
-              <TimelineCanvas 
+            <div className="flex border-2 border-border rounded-lg h-[500px] relative overflow-hidden">
+              {/* Biblioteca de Episodios (Panel Lateral) */}
+              <div className="w-64 border-r border-border">
+                <EpisodeLibrary 
+                  episodes={episodes}
+                  onArchiveToggle={async (episodeId, isArchived) => {
+                    try {
+                      const { success, error } = await toggleEpisodeArchiveStatus(episodeId, isArchived);
+                      
+                      if (error) throw error;
+                      
+                      // Actualizar el estado local
+                      setEpisodes(episodes.map(ep => 
+                        ep.id === episodeId 
+                          ? { ...ep, is_archived: isArchived }
+                          : ep
+                      ));
+                      
+                      // Mostrar mensaje de éxito
+                      alert(isArchived ? 'Episodio archivado' : 'Episodio desarchivado');
+                    } catch (err) {
+                      console.error('Error toggling archive status:', err);
+                      alert(`Error: ${err.message || 'Error desconocido'}`);
+                    }
+                  }}
+                  onAddToCanvas={(episode) => {
+                    // Añadir el episodio al canvas si está archivado
+                    if (episode.is_archived) {
+                      toggleEpisodeArchiveStatus(episode.id, false)
+                        .then(({ success }) => {
+                          if (success) {
+                            setEpisodes(episodes.map(ep => 
+                              ep.id === episode.id 
+                                ? { ...ep, is_archived: false }
+                                : ep
+                            ));
+                          }
+                        })
+                        .catch(err => {
+                          console.error('Error adding episode to canvas:', err);
+                        });
+                    }
+                  }}
+                />
+              </div>
+              
+              {/* Canvas Principal */}
+              <div className="flex-1">
+                <TimelineCanvas 
                 episodes={episodes}
                 onUpdatePosition={async (nodeId, x, y) => {
                   try {
@@ -268,7 +420,32 @@ const NarrativaSection = ({ accountId }) => {
                     alert('Error al conectar los episodios');
                   }
                 }}
+                onUpdateDisplayMode={async (nodeId, displayMode) => {
+                  try {
+                    const { data: episode, error } = await supabase
+                      .from('narrative_episodes')
+                      .update({
+                        display_mode: displayMode,
+                        updated_at: new Date().toISOString()
+                      })
+                      .eq('id', nodeId)
+                      .single();
+
+                    if (error) throw error;
+
+                    // Actualizar el episodio en el estado local
+                    setEpisodes(episodes.map(ep => 
+                      ep.id === nodeId 
+                        ? { ...ep, display_mode: displayMode }
+                        : ep
+                    ));
+                  } catch (err) {
+                    console.error('Error updating display mode:', err);
+                    alert('Error al actualizar el modo de visualización');
+                  }
+                }}
               />
+              </div>
             </div>
           </div>
 
@@ -321,10 +498,12 @@ const NarrativaSection = ({ accountId }) => {
 const SimpleSection = ({ type, accountId }) => {
   const [description, setDescription] = useState('');
   const [image, setImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
+  const fileInputRef = useRef(null);
 
   // Cargar posts al montar el componente
   useEffect(() => {
@@ -344,6 +523,36 @@ const SimpleSection = ({ type, accountId }) => {
     loadPosts();
   }, [accountId, type]);
 
+  // Manejar la selección de imágenes
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Validar que sea una imagen
+    if (!file.type.startsWith('image/')) {
+      alert('Por favor selecciona un archivo de imagen válido');
+      return;
+    }
+
+    setImage(file);
+    
+    // Crear una URL para la vista previa
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setImagePreview(e.target.result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Limpiar la imagen seleccionada
+  const handleClearImage = () => {
+    setImage(null);
+    setImagePreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   const handleSavePost = async () => {
     if (!description.trim()) {
       alert('Por favor ingresa una descripción');
@@ -352,18 +561,30 @@ const SimpleSection = ({ type, accountId }) => {
 
     setSaving(true);
     try {
+      // Primero subimos la imagen si existe
+      let imageUrl = null;
+      if (image) {
+        const { url, error: uploadError } = await uploadImageToSupabase(image, 'posts');
+        if (uploadError) {
+          console.error('Error uploading image:', uploadError);
+          throw new Error(`Error al subir la imagen: ${uploadError.message}`);
+        }
+        imageUrl = url;
+      }
+
+      // Luego creamos el post con la URL de la imagen
       const { post, error } = await createSimplePost({
         accountId,
         type,
         description,
-        imageUrl: image // Aquí necesitarías primero subir la imagen a un storage
+        imageUrl
       });
 
       if (error) throw error;
 
       // Limpiar el formulario
       setDescription('');
-      setImage(null);
+      handleClearImage();
 
       // Actualizar la lista de posts
       setPosts(prev => [post, ...prev]);
@@ -371,7 +592,7 @@ const SimpleSection = ({ type, accountId }) => {
       alert('Post creado exitosamente');
     } catch (err) {
       console.error('Error saving post:', err);
-      alert('Error al guardar el post');
+      alert(`Error al guardar el post: ${err.message || 'Error desconocido'}`);
     } finally {
       setSaving(false);
     }
@@ -409,15 +630,47 @@ const SimpleSection = ({ type, accountId }) => {
               <label className="block text-sm font-medium text-text-primary mb-2">
                 Imagen Destacada
               </label>
-              <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
-                <div className="space-y-2">
-                  <svg className="w-12 h-12 mx-auto text-text-primary opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                  <p className="text-text-primary opacity-70">
-                    {image ? 'Cambiar imagen' : 'Subir imagen'}
-                  </p>
-                </div>
+              <div 
+                className="border-2 border-dashed border-border rounded-lg p-4 text-center cursor-pointer hover:bg-bg-primary/50 transition-colors"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                {imagePreview ? (
+                  <div className="relative">
+                    <img 
+                      src={imagePreview} 
+                      alt="Vista previa" 
+                      className="max-h-48 mx-auto rounded-lg"
+                    />
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleClearImage();
+                      }}
+                      className="absolute top-2 right-2 bg-bg-primary text-text-primary rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-500 hover:text-white"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-2 py-4">
+                    <svg className="w-12 h-12 mx-auto text-text-primary opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <p className="text-text-primary opacity-70">
+                      Haz clic para subir una imagen
+                    </p>
+                    <p className="text-text-primary opacity-50 text-xs">
+                      O arrastra y suelta una imagen aquí
+                    </p>
+                  </div>
+                )}
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleImageChange}
+                  accept="image/*"
+                  className="hidden"
+                />
               </div>
             </div>
           )}
