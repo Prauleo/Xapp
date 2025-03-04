@@ -88,3 +88,4 @@ To learn more about the technologies used:
 - [Supabase Documentation](https://supabase.io/docs)
 - [OpenAI API Documentation](https://platform.openai.com/docs)
 - [TailwindCSS Documentation](https://tailwindcss.com/docs)
+test
