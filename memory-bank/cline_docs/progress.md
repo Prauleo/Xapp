@@ -1,20 +1,28 @@
-# Progreso de la Webapp de Gestión de Contenido
+## Actualización de Funcionalidad: Generación y Guardado de Prompts de Imagen
 
-## Cambios Implementados
-1. **Estructura de la Página de Instagram:**
-   - Sección de **Narrativa** con un formulario para crear episodios, incluyendo campos para título, descripción, tipo de cierre, tags y arco narrativo.
-   - Integración de un **canvas de línea de tiempo** que permite mover episodios y conectar entre ellos.
-   - Sección de **Personal** y **Behind the Scenes** simplificadas, enfocadas en la descripción y una imagen destacada.
+### Descripción
+Se ha implementado una nueva funcionalidad que permite a los usuarios generar prompts de imagen basados en el texto de los tweets generados. Los usuarios ahora pueden elegir guardar solo aquellos prompts que les gusten, lo que mejora la experiencia de uso y la gestión de contenido.
 
-2. **Base de Datos:**
-   - Creación de tablas en Supabase para almacenar episodios narrativos, tags, conexiones y posts simples.
-   - Implementación de funciones en `instagramContent.js` para manejar la creación y obtención de episodios y posts.
+### Cambios Realizados
+1. **Componente PromptGenerator**:
+   - Se agregó un botón de "Guardar" junto al prompt generado.
+   - Se implementó un sistema de feedback visual que indica si un prompt ha sido guardado.
+   - La lógica de generación y guardado se separó para mayor claridad.
 
-3. **Interactividad:**
-   - El canvas permite arrastrar y soltar episodios, así como conectar episodios entre sí.
-   - Se implementaron tooltips para mostrar información detallada sobre cada episodio al pasar el mouse.
+2. **Página de Contenido**:
+   - Se actualizó para manejar el nuevo sistema de guardado de prompts.
+   - Se corrigieron errores relacionados con el guardado en la base de datos.
 
-## Próximos Pasos
-- Ejecutar la migración de Supabase para crear las tablas necesarias.
-- Probar la funcionalidad de la aplicación para asegurar que todo funcione como se espera.
-- Documentar cualquier problema encontrado durante las pruebas y realizar ajustes según sea necesario.
+3. **Historial de Contenido**:
+   - Se modificó para mostrar solo los prompts que han sido guardados por el usuario.
+
+### Uso de la Nueva Funcionalidad
+- Los usuarios pueden generar tweets normalmente.
+- Para cada tweet, pueden generar un prompt de imagen.
+- Si el prompt no es satisfactorio, pueden regenerarlo.
+- Los prompts que les gusten pueden ser guardados haciendo clic en el botón de "Guardar".
+- Los prompts guardados aparecerán en el historial de contenido.
+
+### Beneficios
+- Mejora la gestión de contenido al permitir que los usuarios guarden solo lo que realmente les interesa.
+- Facilita la creación de contenido visual atractivo basado en los tweets generados.

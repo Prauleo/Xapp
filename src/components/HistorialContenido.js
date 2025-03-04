@@ -65,7 +65,7 @@ export default function ContentHistory({ cuentaId }) {
       ) : (
         <div className="space-y-4">
           {history.map((item) => (
-            <div key={item.id} className="border border-border rounded-lg p-4 bg-bg-secondary relative group">
+          <div key={item.id} className="border border-border rounded-lg p-4 bg-bg-secondary relative group space-y-4">
               <div className="flex justify-between items-start mb-2">
                 <span className="text-sm text-text-primary opacity-70">
                   {new Date(item.fecha_creacion).toLocaleDateString('en-US', {
@@ -98,15 +98,26 @@ export default function ContentHistory({ cuentaId }) {
                 <p className="text-text-primary opacity-80 text-sm">{item.contexto}</p>
               </div>
 
-              <div>
-                <h3 className="font-medium text-text-primary mb-2">Generated Tweets:</h3>
-                <div className="space-y-2">
-                  {item.tweets && item.tweets.map((tweet, index) => (
-                    <div key={index} className="p-3 bg-bg-primary rounded border border-border">
-                      <p className="text-text-primary">{tweet}</p>
-                    </div>
-                  ))}
+              <div className="space-y-4">
+                <div>
+                  <h3 className="font-medium text-text-primary mb-2">Generated Tweets:</h3>
+                  <div className="space-y-2">
+                    {item.tweets && item.tweets.map((tweet, index) => (
+                      <div key={index} className="p-3 bg-bg-primary rounded border border-border">
+                        <p className="text-text-primary">{tweet}</p>
+                      </div>
+                    ))}
+                  </div>
                 </div>
+
+                {item.image_prompt && (
+                  <div>
+                    <h3 className="font-medium text-text-primary mb-2">Generated Image Prompt:</h3>
+                    <div className="p-3 bg-bg-primary rounded border border-border">
+                      <p className="text-text-primary whitespace-pre-wrap">{item.image_prompt}</p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           ))}

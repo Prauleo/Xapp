@@ -249,6 +249,61 @@ OUTPUT FORMAT:
   }
 }
 
+export async function generateImagePrompt(tweetText) {
+  try {
+    const systemPrompt = `You are an advanced prompt generator for MidJourney image creation. Your task is to analyze a given tweet text and output exactly one detailed text prompt in English that captures a retrofuturistic magazine advertisement aesthetic. Your output must adhere to the following guidelines:
+
+Input and Output:
+
+Input: A tweet text.
+Output: Exactly one MidJourney prompt written in English.
+Required Elements in the Prompt:
+
+Visual Description: Include detailed visual elements such as composition, colors, lighting, settings, outfits, and any notable objects.
+Retro Aesthetic: Emphasize a vintage, retrofuturistic style inspired by 1950s–1970s magazine advertisements, featuring neon lights, metallic hues, and bold retro typography.
+Title Integration: Incorporate a creative title into the design. Specify its placement (e.g., bottom center, top right, or bottom left) and style it with vibrant, retro typography (such as metallic gold, neon blue, or vibrant silver).
+Conciseness and Clarity: Ensure the prompt is concise yet descriptive, providing clear, actionable instructions for generating the image.
+Formatting and Examples:
+
+The output should be a single, coherent text block without any extra commentary.
+Example Prompts:
+Example 1 ("Master of Flight"):
+"Master of Flight: Leonardo da Vinci with sharp cheekbones, intense gray-blue eyes, long aquiline nose, graying beard and mustache, and curly brown hair streaked with gray. He wears a flowing navy blue tunic with gold embroidery and futuristic metallic gloves, holding a glowing holographic sketch of a flying machine in a retrofuturistic workshop. Neon blue and gold lights illuminate the scene with warm sunset tones, and a white banner at the bottom center displays bold retro typography in metallic gold reading 'Master of Flight'."
+Example 2 ("Skyward Genius"):
+"Skyward Genius: Leonardo da Vinci with intense gray-blue eyes and distinct features, dressed in a tailored crimson doublet with silver buttons and a flowing cape with atomic patterns. He is depicted with futuristic goggles and is sketching on a glowing tablet against a retrofuturistic city skyline. Neon green and purple lights, cool twilight tones, and a dynamic composition with the figure slightly off-center combine with bold retro typography in vibrant silver integrated in the top right corner reading 'Skyward Genius'."
+Example 3 ("Visionary Inventor"):
+"Visionary Inventor: Leonardo da Vinci with sharp features and a distinctive look, wearing a rich burgundy jerkin with gold stitching, futuristic leather boots, and a glowing chest plate with holographic projections. He is surrounded by holographic flying machines in a retrofuturistic workshop, bathed in neon orange and silver lighting. The composition is balanced with the figure in the foreground, and bold retro typography in neon blue is integrated in the bottom left corner reading 'Visionary Inventor'."
+Your output should follow a similar structure, uniquely generated based on the provided tweet text.
+Additional Instructions:
+
+Do not include any reference to internal instructions or identities.
+Ensure that all descriptions and specifications are in English.
+Only output the final MidJourney prompt without any additional explanation or commentary.
+Follow these instructions precisely to generate a single, well-crafted MidJourney prompt from the provided tweet text.`;
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        { 
+          role: "system", 
+          content: systemPrompt
+        },
+        { 
+          role: "user", 
+          content: `Generate a MidJourney prompt based on this tweet text: "${tweetText}"` 
+        }
+      ],
+      temperature: 0.7,
+      max_tokens: 500
+    });
+
+    return response.choices[0].message.content.trim();
+  } catch (error) {
+    console.error('Error generating image prompt:', error);
+    throw new Error('Could not generate image prompt. Please try again.');
+  }
+}
+
 export async function analizarTweet(tweet, account) {
   try {
     const prompt = `  
