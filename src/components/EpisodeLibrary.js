@@ -5,6 +5,8 @@ export default function EpisodeLibrary({
   episodes = [], 
   onArchiveToggle, 
   onAddToCanvas,
+  onEditNode,
+  onDeleteNode,
   className = ''
 }) {
   const [searchTerm, setSearchTerm] = useState('');
@@ -157,22 +159,53 @@ export default function EpisodeLibrary({
                     {episode.title}
                   </h3>
                   
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onArchiveToggle && onArchiveToggle(episode.id, !episode.is_archived);
-                    }}
-                    className="p-1 text-text-primary/70 hover:text-text-primary"
-                    title={episode.is_archived ? "Desarchivar" : "Archivar"}
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      {episode.is_archived ? (
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
-                      ) : (
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
-                      )}
-                    </svg>
-                  </button>
+                  <div className="flex space-x-1">
+                    {/* Botón Editar */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onEditNode && onEditNode(episode.id);
+                      }}
+                      className="p-1 text-text-primary/70 hover:text-text-primary"
+                      title="Editar episodio"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                    </button>
+                    
+                    {/* Botón Eliminar */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDeleteNode && onDeleteNode(episode.id);
+                      }}
+                      className="p-1 text-text-primary/70 hover:text-red-400"
+                      title="Eliminar episodio"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                    
+                    {/* Botón Archivar */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onArchiveToggle && onArchiveToggle(episode.id, !episode.is_archived);
+                      }}
+                      className="p-1 text-text-primary/70 hover:text-text-primary"
+                      title={episode.is_archived ? "Desarchivar" : "Archivar"}
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        {episode.is_archived ? (
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                        ) : (
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                        )}
+                      </svg>
+                    </button>
+                  </div>
                 </div>
                 
                 {episode.description && (

@@ -30,6 +30,11 @@ const NarrativaSection = ({ accountId }) => {
   const [error, setError] = useState(null);
   const [image, setImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
+  const [isPanelCollapsed, setIsPanelCollapsed] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [currentEditingEpisode, setCurrentEditingEpisode] = useState(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [episodeToDelete, setEpisodeToDelete] = useState(null);
   const fileInputRef = useRef(null);
 
   // Cargar episodios al montar el componente
@@ -145,15 +150,249 @@ const NarrativaSection = ({ accountId }) => {
     }
   };
 
+  // Función para editar un episodio existente
+  const handleEditEpisode = async (editedData) => {
+    try {
+      const { data: episode, error } = await supabase
+        .from('narrative_episodes')
+        .update({
+          title: editedData.title,
+          description: editedData.description,
+          closure_type: editedData.closure,
+          tags: editedData.tags,
+          arc_name: editedData.arc,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', currentEditingEpisode.id)
+        .select();
+
+      if (error) throw error;
+
+      // Actualizar el episodio en el estado local
+      setEpisodes(episodes.map(ep => 
+        ep.id === currentEditingEpisode.id ? { ...ep, ...episode[0] } : ep
+      ));
+
+      // Cerrar el modal
+      setIsEditModalOpen(false);
+      setCurrentEditingEpisode(null);
+
+      alert('Episodio actualizado exitosamente');
+    } catch (err) {
+      console.error('Error updating episode:', err);
+      alert(`Error al actualizar el episodio: ${err.message || 'Error desconocido'}`);
+    }
+  };
+
+  // Función para eliminar un episodio
+  const handleDeleteEpisode = async () => {
+    if (!episodeToDelete) return;
+    
+    try {
+      // Primero eliminar las conexiones relacionadas
+      const { error: connError } = await supabase
+        .from('episode_connections')
+        .delete()
+        .or(`from_episode_id.eq.${episodeToDelete},to_episode_id.eq.${episodeToDelete}`);
+
+      if (connError) throw connError;
+      
+      // Luego eliminar el episodio
+      const { error } = await supabase
+        .from('narrative_episodes')
+        .delete()
+        .eq('id', episodeToDelete);
+
+      if (error) throw error;
+
+      // Actualizar el estado local
+      setEpisodes(episodes.filter(ep => ep.id !== episodeToDelete));
+      
+      // Cerrar el modal
+      setIsDeleteModalOpen(false);
+      setEpisodeToDelete(null);
+
+      alert('Episodio eliminado exitosamente');
+    } catch (err) {
+      console.error('Error deleting episode:', err);
+      alert(`Error al eliminar el episodio: ${err.message || 'Error desconocido'}`);
+    }
+  };
+
   if (loading) return <div className="text-center py-4">Cargando episodios...</div>;
   if (error) return <div className="text-red-400 py-4">{error}</div>;
 
   return (
     <div className="space-y-8">
-      {/* Formulario de creación */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="space-y-6">
-          <div className="p-6 bg-bg-secondary rounded-lg border border-border">
+      {/* Formulario de creación - Layout modificado para dar más espacio al canvas (70/30) */}
+      <div className="grid grid-cols-1 lg:grid-cols-10 gap-4">
+        {/* Modal de Edición */}
+        {isEditModalOpen && currentEditingEpisode && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-bg-secondary rounded-lg p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto">
+              <h3 className="text-xl font-semibold mb-4 text-text-primary">Editar Episodio</h3>
+              
+              {/* Formulario de edición - similar al de creación pero con valores por defecto */}
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">Título</label>
+                  <input 
+                    type="text" 
+                    value={title} 
+                    onChange={(e) => setTitle(e.target.value)}
+                    className="w-full p-2 bg-bg-primary border border-border rounded-lg text-text-primary" 
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">Descripción</label>
+                  <textarea
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    className="w-full h-32 p-2 bg-bg-primary border border-border rounded-lg text-text-primary resize-none"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">Tipo de Cierre</label>
+                  <select
+                    value={closure}
+                    onChange={(e) => setClosure(e.target.value)}
+                    className="w-full p-2 bg-bg-primary border border-border rounded-lg text-text-primary"
+                  >
+                    <option value="complete">Completo</option>
+                    <option value="cliffhanger">Cliffhanger</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">Tags</label>
+                  <div className="flex gap-2 flex-wrap mb-2">
+                    {tags.map((tag, index) => (
+                      <span
+                        key={index}
+                        className="px-2 py-1 bg-accent text-text-primary rounded-lg text-sm flex items-center gap-1"
+                      >
+                        {tag}
+                        <button
+                          onClick={() => handleRemoveTag(tag)}
+                          className="hover:text-red-400"
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={newTag}
+                      onChange={(e) => setNewTag(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && handleAddTag()}
+                      className="flex-1 p-2 bg-bg-primary border border-border rounded-lg text-text-primary"
+                      placeholder="Añadir tag..."
+                    />
+                    <button
+                      onClick={handleAddTag}
+                      className="px-4 py-2 bg-accent text-text-primary rounded-lg hover:opacity-90"
+                    >
+                      Añadir
+                    </button>
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">Arco Narrativo</label>
+                  <input
+                    type="text"
+                    value={arc}
+                    onChange={(e) => setArc(e.target.value)}
+                    className="w-full p-2 bg-bg-primary border border-border rounded-lg text-text-primary"
+                  />
+                </div>
+                
+                <div className="flex gap-2 mt-6">
+                  <button
+                    onClick={() => {
+                      handleEditEpisode({
+                        title,
+                        description,
+                        closure,
+                        tags,
+                        arc
+                      });
+                    }}
+                    className="flex-1 bg-accent text-text-primary px-4 py-2 rounded-lg hover:opacity-90"
+                  >
+                    Guardar Cambios
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsEditModalOpen(false);
+                      setCurrentEditingEpisode(null);
+                    }}
+                    className="flex-1 bg-bg-primary text-text-primary px-4 py-2 rounded-lg border border-border hover:bg-bg-primary/70"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {/* Modal de Confirmación de Eliminación */}
+        {isDeleteModalOpen && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-bg-secondary rounded-lg p-6 max-w-md w-full">
+              <h3 className="text-xl font-semibold mb-4 text-text-primary">Confirmar Eliminación</h3>
+              <p className="text-text-primary mb-6">
+                ¿Estás seguro de que deseas eliminar este episodio? Esta acción no se puede deshacer.
+              </p>
+              
+              <div className="flex gap-2">
+                <button
+                  onClick={handleDeleteEpisode}
+                  className="flex-1 bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600"
+                >
+                  Eliminar
+                </button>
+                <button
+                  onClick={() => {
+                    setIsDeleteModalOpen(false);
+                    setEpisodeToDelete(null);
+                  }}
+                  className="flex-1 bg-bg-primary text-text-primary px-4 py-2 rounded-lg border border-border hover:bg-bg-primary/70"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+        {/* Panel lateral (30%) con funcionalidad para contraer/expandir */}
+        <div className={`transition-all duration-300 ${
+          isPanelCollapsed 
+            ? 'lg:col-span-1 overflow-hidden' 
+            : 'lg:col-span-3'
+        } space-y-6 relative`}>
+          {/* Botón para contraer/expandir */}
+          <button 
+            onClick={() => setIsPanelCollapsed(!isPanelCollapsed)}
+            className="absolute left-0 top-1/2 bg-bg-secondary p-2 rounded-r-lg border border-border z-10"
+          >
+            <svg className="w-4 h-4 text-text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={
+                isPanelCollapsed 
+                  ? "M13 5l7 7-7 7M5 5l7 7-7 7" // Flechas derecha
+                  : "M19 12H5M11 19l-7-7 7-7" // Flechas izquierda
+              } />
+            </svg>
+          </button>
+          
+          {/* Contenido del panel que se muestra/oculta */}
+          <div className={`${isPanelCollapsed ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}>
+            <div className="p-6 bg-bg-secondary rounded-lg border border-border">
             <h3 className="text-lg font-semibold mb-4 text-text-primary">Detalles del Episodio</h3>
             
             {/* Título */}
@@ -308,14 +547,17 @@ const NarrativaSection = ({ accountId }) => {
             >
               {saving ? 'Guardando...' : 'Guardar Episodio'}
             </button>
+            </div>
           </div>
         </div>
 
-        {/* Canvas de Línea de Tiempo y Biblioteca de Episodios */}
-        <div className="space-y-6">
+        {/* Canvas principal (70% o 90% cuando el panel está contraído) */}
+        <div className={`transition-all duration-300 ${
+          isPanelCollapsed ? 'lg:col-span-9' : 'lg:col-span-7'
+        } space-y-6`}>
           <div className="p-6 bg-bg-secondary rounded-lg border border-border">
             <h3 className="text-lg font-semibold mb-4 text-text-primary">Línea de Tiempo</h3>
-            <div className="flex border-2 border-border rounded-lg h-[500px] relative overflow-hidden">
+            <div className="flex border-2 border-border rounded-lg h-[700px] relative overflow-hidden">
               {/* Biblioteca de Episodios (Panel Lateral) */}
               <div className="w-64 border-r border-border">
                 <EpisodeLibrary 
@@ -358,93 +600,125 @@ const NarrativaSection = ({ accountId }) => {
                         });
                     }
                   }}
+                  onEditNode={(nodeId) => {
+                    const episodeToEdit = episodes.find(ep => ep.id === nodeId);
+                    if (episodeToEdit) {
+                      setCurrentEditingEpisode(episodeToEdit);
+                      setTitle(episodeToEdit.title);
+                      setDescription(episodeToEdit.description || '');
+                      setClosure(episodeToEdit.closure_type || 'complete');
+                      setTags(episodeToEdit.tags || []);
+                      setArc(episodeToEdit.arc_name || '');
+                      setIsEditModalOpen(true);
+                    }
+                  }}
+                  onDeleteNode={(nodeId) => {
+                    setEpisodeToDelete(nodeId);
+                    setIsDeleteModalOpen(true);
+                  }}
                 />
               </div>
               
               {/* Canvas Principal */}
               <div className="flex-1">
                 <TimelineCanvas 
-                episodes={episodes}
-                onUpdatePosition={async (nodeId, x, y) => {
-                  try {
-                    const { data: episode, error } = await supabase
-                      .from('narrative_episodes')
-                      .update({
-                        position_x: x,
-                        position_y: y,
-                        updated_at: new Date().toISOString()
-                      })
-                      .eq('id', nodeId)
-                      .single();
+                  episodes={episodes}
+                  onUpdatePosition={async (nodeId, x, y) => {
+                    try {
+                      const { data: episode, error } = await supabase
+                        .from('narrative_episodes')
+                        .update({
+                          position_x: x,
+                          position_y: y,
+                          updated_at: new Date().toISOString()
+                        })
+                        .eq('id', nodeId)
+                        .single();
 
-                    if (error) throw error;
+                      if (error) throw error;
 
-                    // Actualizar el episodio en el estado local
-                    setEpisodes(episodes.map(ep => 
-                      ep.id === nodeId 
-                        ? { ...ep, position_x: x, position_y: y }
-                        : ep
-                    ));
-                  } catch (err) {
-                    console.error('Error updating episode position:', err);
-                    alert('Error al actualizar la posición del episodio');
-                  }
-                }}
-                onConnect={async (startId, endId) => {
-                  try {
-                    const { error } = await supabase
-                      .from('episode_connections')
-                      .insert({
-                        from_episode_id: startId,
-                        to_episode_id: endId,
-                        created_at: new Date().toISOString()
-                      });
+                      // Actualizar el episodio en el estado local
+                      setEpisodes(episodes.map(ep => 
+                        ep.id === nodeId 
+                          ? { ...ep, position_x: x, position_y: y }
+                          : ep
+                      ));
+                    } catch (err) {
+                      console.error('Error updating episode position:', err);
+                      alert('Error al actualizar la posición del episodio');
+                    }
+                  }}
+                  onConnect={async (startId, endId) => {
+                    try {
+                      const { error } = await supabase
+                        .from('episode_connections')
+                        .insert({
+                          from_episode_id: startId,
+                          to_episode_id: endId,
+                          created_at: new Date().toISOString()
+                        });
 
-                    if (error) throw error;
+                      if (error) throw error;
 
-                    // Actualizar las conexiones en el estado local
-                    setEpisodes(episodes.map(ep => {
-                      if (ep.id === startId) {
-                        return {
-                          ...ep,
-                          connections: [
-                            ...(ep.connections || []),
-                            { start: startId, end: endId }
-                          ]
-                        };
-                      }
-                      return ep;
-                    }));
-                  } catch (err) {
-                    console.error('Error creating connection:', err);
-                    alert('Error al conectar los episodios');
-                  }
-                }}
-                onUpdateDisplayMode={async (nodeId, displayMode) => {
-                  try {
-                    const { data: episode, error } = await supabase
-                      .from('narrative_episodes')
-                      .update({
-                        display_mode: displayMode,
-                        updated_at: new Date().toISOString()
-                      })
-                      .eq('id', nodeId)
-                      .single();
+                      // Actualizar las conexiones en el estado local
+                      setEpisodes(episodes.map(ep => {
+                        if (ep.id === startId) {
+                          return {
+                            ...ep,
+                            connections: [
+                              ...(ep.connections || []),
+                              { start: startId, end: endId }
+                            ]
+                          };
+                        }
+                        return ep;
+                      }));
+                    } catch (err) {
+                      console.error('Error creating connection:', err);
+                      alert('Error al conectar los episodios');
+                    }
+                  }}
+                  onUpdateDisplayMode={async (nodeId, displayMode) => {
+                    try {
+                      const { data: episode, error } = await supabase
+                        .from('narrative_episodes')
+                        .update({
+                          display_mode: displayMode,
+                          updated_at: new Date().toISOString()
+                        })
+                        .eq('id', nodeId)
+                        .single();
 
-                    if (error) throw error;
+                      if (error) throw error;
 
-                    // Actualizar el episodio en el estado local
-                    setEpisodes(episodes.map(ep => 
-                      ep.id === nodeId 
-                        ? { ...ep, display_mode: displayMode }
-                        : ep
-                    ));
-                  } catch (err) {
-                    console.error('Error updating display mode:', err);
-                    alert('Error al actualizar el modo de visualización');
-                  }
-                }}
-              />
+                      // Actualizar el episodio en el estado local
+                      setEpisodes(episodes.map(ep => 
+                        ep.id === nodeId 
+                          ? { ...ep, display_mode: displayMode }
+                          : ep
+                      ));
+                    } catch (err) {
+                      console.error('Error updating display mode:', err);
+                      alert('Error al actualizar el modo de visualización');
+                    }
+                  }}
+                  onEditNode={(nodeId) => {
+                    const episodeToEdit = episodes.find(ep => ep.id === nodeId);
+                    if (episodeToEdit) {
+                      setCurrentEditingEpisode(episodeToEdit);
+                      setTitle(episodeToEdit.title);
+                      setDescription(episodeToEdit.description || '');
+                      setClosure(episodeToEdit.closure_type || 'complete');
+                      setTags(episodeToEdit.tags || []);
+                      setArc(episodeToEdit.arc_name || '');
+                      setIsEditModalOpen(true);
+                    }
+                  }}
+                  onDeleteNode={(nodeId) => {
+                    setEpisodeToDelete(nodeId);
+                    setIsDeleteModalOpen(true);
+                  }}
+                />
               </div>
             </div>
           </div>

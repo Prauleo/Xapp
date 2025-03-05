@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect, useRef, useCallback } from 'react';
 
-export default function TimelineCanvas({ episodes = [], onUpdatePosition, onConnect, onUpdateDisplayMode }) {
+export default function TimelineCanvas({ episodes = [], onUpdatePosition, onConnect, onUpdateDisplayMode, onEditNode, onDeleteNode }) {
   const canvasRef = useRef(null);
   const [nodes, setNodes] = useState([]);
   const [scale, setScale] = useState(1);
@@ -9,6 +9,8 @@ export default function TimelineCanvas({ episodes = [], onUpdatePosition, onConn
   const [tooltip, setTooltip] = useState({ show: false, text: '', x: 0, y: 0 });
   const [selectedNodes, setSelectedNodes] = useState([]);
   const [showArchived, setShowArchived] = useState(false);
+  const [contextMenu, setContextMenu] = useState({ show: false, x: 0, y: 0, nodeId: null });
+  const [isInstructionsCollapsed, setIsInstructionsCollapsed] = useState(false);
   
   // Referencia para el estado de panorámica
   const [isPanning, setIsPanning] = useState(false);
@@ -207,7 +209,7 @@ export default function TimelineCanvas({ episodes = [], onUpdatePosition, onConn
       ctx.translate(offset.x, offset.y);
       ctx.scale(scale, scale);
       
-      // Dibujar una cuadrícula de fondo para referencia visual
+      // Dibujar una cuadrícula de fondo para referencia visual (casi invisible)
       drawGrid(ctx, canvas.width, canvas.height);
       
       // Dibujar conexiones
@@ -226,8 +228,8 @@ export default function TimelineCanvas({ episodes = [], onUpdatePosition, onConn
 
       // Dibujar nodos
       nodes.forEach(node => {
-        // Determinar el radio según el modo de visualización
-        const nodeRadius = node.displayMode === 'detailed' ? 30 : 20;
+        // Determinar el radio según el modo de visualización (aumentado para mejor visibilidad)
+        const nodeRadius = node.displayMode === 'detailed' ? 35 : 25;
         
         // Dibujar círculo de fondo o imagen
         if (nodeImages[node.id]) {
@@ -249,11 +251,23 @@ export default function TimelineCanvas({ episodes = [], onUpdatePosition, onConn
           
           ctx.restore();
         } else {
-          // Si no hay imagen, dibujar un círculo de color
+          // Si no hay imagen, dibujar un círculo de color con sombra
+          // Agregar sombra para dar profundidad
+          ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
+          ctx.shadowBlur = 5;
+          ctx.shadowOffsetX = 2;
+          ctx.shadowOffsetY = 2;
+          
           ctx.fillStyle = node.selected ? '#4f46e5' : node.isArchived ? '#9ca3af' : '#1f2937';
           ctx.beginPath();
           ctx.arc(node.x, node.y, nodeRadius, 0, Math.PI * 2);
           ctx.fill();
+          
+          // Resetear sombra para el resto de elementos
+          ctx.shadowColor = 'transparent';
+          ctx.shadowBlur = 0;
+          ctx.shadowOffsetX = 0;
+          ctx.shadowOffsetY = 0;
           
           // Texto del nodo
           ctx.fillStyle = '#fff';
@@ -321,7 +335,7 @@ export default function TimelineCanvas({ episodes = [], onUpdatePosition, onConn
       const offsetX = offset.x % (gridSize * scale);
       const offsetY = offset.y % (gridSize * scale);
       
-      ctx.strokeStyle = 'rgba(200, 200, 200, 0.2)';
+      ctx.strokeStyle = 'rgba(200, 200, 200, 0.05)';
       ctx.lineWidth = 0.5 / scale;
       
       // Líneas verticales
@@ -356,8 +370,54 @@ export default function TimelineCanvas({ episodes = [], onUpdatePosition, onConn
     };
   }, [handleWheel, nodes, connections, offset, scale]);
 
+  // Función para detectar si un punto está dentro de un nodo
+  const isPointInNode = useCallback((x, y, node) => {
+    const dx = node.x - x;
+    const dy = node.y - y;
+    // Radio de detección más grande para facilitar el clic
+    const nodeRadius = node.displayMode === 'detailed' ? 40 : 30;
+    return Math.sqrt(dx * dx + dy * dy) < nodeRadius;
+  }, []);
+
   const handleMouseDown = useCallback((e) => {
+    // Obtener las coordenadas del canvas
     const canvasPos = mouseToCanvas(e.clientX, e.clientY);
+    
+    // Si se hace clic en el menú contextual, no hacer nada
+    if (contextMenu.show && e.target.closest('.context-menu')) {
+      return;
+    }
+    
+    // Si se hace clic fuera del menú contextual, cerrarlo
+    if (contextMenu.show) {
+      setContextMenu({ show: false, x: 0, y: 0, nodeId: null });
+      
+      // Si el clic no fue derecho, no continuar con el resto de la lógica
+      if (e.button !== 2) {
+        return;
+      }
+    }
+    
+    // Manejar clic derecho (menú contextual)
+    if (e.button === 2) {
+      e.preventDefault(); // Prevenir el menú contextual del navegador
+      
+      // Buscar si se hizo clic en un nodo
+      const clickedNode = nodes.find(node => isPointInNode(canvasPos.x, canvasPos.y, node));
+      
+      if (clickedNode) {
+        // Mostrar el menú contextual
+        setContextMenu({
+          show: true,
+          x: e.clientX,
+          y: e.clientY,
+          nodeId: clickedNode.id
+        });
+        return;
+      }
+      
+      return; // Si fue clic derecho pero no en un nodo, no hacer nada más
+    }
     
     // Si se presiona la tecla espaciadora, iniciar modo panorámica
     if (e.buttons === 1 && e.altKey) {
@@ -414,6 +474,36 @@ export default function TimelineCanvas({ episodes = [], onUpdatePosition, onConn
       }
     }
   }, [mouseToCanvas, nodes, connecting, selectedNodes]);
+  
+  // Agregar manejador para cerrar el menú al hacer clic en cualquier parte
+  const handleCloseContextMenu = useCallback((e) => {
+    // No cerrar el menú si el clic fue dentro del menú contextual
+    if (e && e.target && e.target.closest('.context-menu')) {
+      return;
+    }
+    setContextMenu({ show: false, x: 0, y: 0, nodeId: null });
+  }, []);
+  
+  // Manejar el evento contextmenu (clic derecho)
+  const handleContextMenu = useCallback((e) => {
+    e.preventDefault(); // Prevenir el menú contextual del navegador
+    
+    // El resto de la lógica se maneja en handleMouseDown
+  }, []);
+  
+  // Añadir event listeners
+  useEffect(() => {
+    // Usamos mousedown en lugar de click para mejor respuesta
+    window.addEventListener('mousedown', handleCloseContextMenu);
+    
+    // Prevenir el menú contextual del navegador
+    canvasRef.current?.addEventListener('contextmenu', handleContextMenu);
+    
+    return () => {
+      window.removeEventListener('mousedown', handleCloseContextMenu);
+      canvasRef.current?.removeEventListener('contextmenu', handleContextMenu);
+    };
+  }, [handleCloseContextMenu, handleContextMenu]);
 
   // Manejar cuando se suelta un nodo después de arrastrarlo
   const handleNodeDragEnd = useCallback(async (nodeId, x, y) => {
@@ -577,14 +667,37 @@ export default function TimelineCanvas({ episodes = [], onUpdatePosition, onConn
         onMouseUp={handleMouseUp}
         onDoubleClick={handleDoubleClick}
       />
-      {/* Instrucciones */}
-      <div className="absolute bottom-4 left-4 text-sm text-text-primary opacity-70">
-        <p>Shift + Click y arrastrar para conectar episodios</p>
-        <p>Click y arrastrar para mover episodios</p>
-        <p>Ctrl/Cmd + Click para selección múltiple</p>
-        <p>Alt + Click y arrastrar para mover el canvas</p>
-        <p>Doble click en episodio para cambiar vista</p>
-        <p>Rueda del mouse para zoom</p>
+      {/* Instrucciones colapsables */}
+      <div className={`absolute bottom-4 left-4 bg-bg-secondary/80 rounded-lg p-3 border border-border transition-all duration-300 ${
+        isInstructionsCollapsed ? 'w-10 h-10 overflow-hidden' : 'max-w-xs'
+      }`}>
+        {/* Botón para colapsar/expandir */}
+        <button 
+          onClick={() => setIsInstructionsCollapsed(!isInstructionsCollapsed)}
+          className="absolute top-2 right-2 p-1 text-text-primary/70 hover:text-text-primary rounded-full bg-bg-primary/50 hover:bg-bg-primary"
+          title={isInstructionsCollapsed ? "Mostrar instrucciones" : "Ocultar instrucciones"}
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={
+              isInstructionsCollapsed 
+                ? "M13 10V3L4 14h7v7l9-11h-7z" // Flecha expandir
+                : "M19 9l-7 7-7-7" // Flecha colapsar
+            } />
+          </svg>
+        </button>
+        
+        {/* Contenido de instrucciones */}
+        <div className={`text-sm text-text-primary opacity-70 transition-opacity duration-300 ${
+          isInstructionsCollapsed ? 'opacity-0' : 'opacity-100'
+        }`}>
+          <h4 className="font-semibold mb-2">Instrucciones</h4>
+          <p>Shift + Click y arrastrar para conectar episodios</p>
+          <p>Click y arrastrar para mover episodios</p>
+          <p>Ctrl/Cmd + Click para selección múltiple</p>
+          <p>Alt + Click y arrastrar para mover el canvas</p>
+          <p>Doble click en episodio para cambiar vista</p>
+          <p>Rueda del mouse para zoom</p>
+        </div>
       </div>
 
       {/* Tooltip */}
@@ -600,6 +713,69 @@ export default function TimelineCanvas({ episodes = [], onUpdatePosition, onConn
           }}
         >
           {tooltip.text}
+        </div>
+      )}
+
+      {/* Menú contextual */}
+      {contextMenu.show && (
+        <div 
+          className="absolute z-50 bg-bg-secondary border border-border rounded-lg shadow-lg overflow-hidden context-menu"
+          style={{ 
+            left: contextMenu.x,
+            top: contextMenu.y,
+            pointerEvents: 'auto' // Asegurar que reciba eventos de mouse
+          }}
+          onClick={(e) => {
+            e.stopPropagation(); // Evitar que se cierre al hacer clic en el menú
+            e.preventDefault(); // Prevenir comportamiento por defecto
+          }}
+          onContextMenu={(e) => {
+            e.preventDefault(); // Prevenir menú contextual del navegador
+            e.stopPropagation();
+          }}
+        >
+          <div className="flex flex-col min-w-[150px] context-menu">
+            <button
+              className="p-2 hover:bg-accent/20 text-text-primary text-left flex items-center gap-2 context-menu"
+              onClick={() => {
+                // Lógica para editar
+                onEditNode && onEditNode(contextMenu.nodeId);
+                setContextMenu({ show: false, x: 0, y: 0, nodeId: null });
+              }}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+              Editar
+            </button>
+            <button
+              className="p-2 hover:bg-accent/20 text-text-primary text-left flex items-center gap-2 context-menu"
+              onClick={() => {
+                // Lógica para eliminar
+                onDeleteNode && onDeleteNode(contextMenu.nodeId);
+                setContextMenu({ show: false, x: 0, y: 0, nodeId: null });
+              }}
+            >
+              <svg className="w-4 h-4 context-menu" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+              <span className="context-menu">Eliminar</span>
+            </button>
+            <button
+              className="p-2 hover:bg-accent/20 text-text-primary text-left flex items-center gap-2 context-menu"
+              onClick={() => {
+                // Lógica para cambiar modo de visualización
+                toggleDisplayMode(contextMenu.nodeId);
+                setContextMenu({ show: false, x: 0, y: 0, nodeId: null });
+              }}
+            >
+              <svg className="w-4 h-4 context-menu" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+              <span className="context-menu">Cambiar vista</span>
+            </button>
+          </div>
         </div>
       )}
     </div>
